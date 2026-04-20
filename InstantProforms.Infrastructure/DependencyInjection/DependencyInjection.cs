@@ -32,7 +32,6 @@ public static class DependencyInjection
             provider.GetRequiredService<AppDbContext>());
 
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
-        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 
         return services;
     }
