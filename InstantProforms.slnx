@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="InstantProforms.API/InstantProforms.API.csproj" />
+  <Project Path="InstantProforms.Application/InstantProforms.Application.csproj" />
+  <Project Path="InstantProforms.Domain/InstantProforms.Domain.csproj" />
+  <Project Path="InstantProforms.Infrastructure/InstantProforms.Infrastructure.csproj" />
+</Solution>
