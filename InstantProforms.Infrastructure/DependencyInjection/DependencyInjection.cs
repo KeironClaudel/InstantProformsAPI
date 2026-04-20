@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Infrastructure.Persistence;
+using InstantProforms.Infrastructure.Services;
 
 namespace InstantProforms.Infrastructure.DependencyInjection;
 
@@ -29,6 +30,9 @@ public static class DependencyInjection
 
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<AppDbContext>());
+
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 
         return services;
     }

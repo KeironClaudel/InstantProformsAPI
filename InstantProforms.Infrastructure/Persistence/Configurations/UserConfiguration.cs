@@ -4,15 +4,8 @@ using InstantProforms.Domain.Entities;
 
 namespace InstantProforms.Infrastructure.Persistence.Configurations;
 
-/// <summary>
-/// Configures the User entity.
-/// </summary>
 public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    /// <summary>
-    /// Configures the entity.
-    /// </summary>
-    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("Users");
@@ -31,12 +24,14 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(500)
             .IsRequired();
 
-        builder.Property(x => x.Role)
-            .IsRequired();
-
         builder.HasOne(x => x.Company)
             .WithMany(x => x.Users)
             .HasForeignKey(x => x.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Role)
+            .WithMany(x => x.Users)
+            .HasForeignKey(x => x.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new { x.CompanyId, x.Email })

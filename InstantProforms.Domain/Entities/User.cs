@@ -1,5 +1,4 @@
 ﻿using InstantProforms.Domain.Common;
-using InstantProforms.Domain.Enums;
 
 namespace InstantProforms.Domain.Entities;
 
@@ -12,6 +11,11 @@ public sealed class User : BaseAuditableEntity
     /// Gets or sets the company identifier.
     /// </summary>
     public Guid CompanyId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the role identifier.
+    /// </summary>
+    public Guid RoleId { get; set; }
 
     /// <summary>
     /// Gets or sets the full name.
@@ -29,11 +33,6 @@ public sealed class User : BaseAuditableEntity
     public string PasswordHash { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the role.
-    /// </summary>
-    public UserRole Role { get; set; } = UserRole.Employee;
-
-    /// <summary>
     /// Gets or sets a value indicating whether the user is active.
     /// </summary>
     public bool IsActive { get; set; } = true;
@@ -42,4 +41,9 @@ public sealed class User : BaseAuditableEntity
     /// Gets or sets the related company.
     /// </summary>
     public Company Company { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the related role.
+    /// </summary>
+    public Role Role { get; set; } = null!;
 }
