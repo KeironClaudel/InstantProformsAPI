@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using InstantProforms.Application.Features.Proforms.UpdateProformStatus;
 using InstantProforms.Application.Features.Proforms.DownloadProformPdf;
 using InstantProforms.Application.Features.Proforms.SendProformByEmail;
+using InstantProforms.Application.Features.Proforms.CreateProformShareLink;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -128,6 +129,24 @@ public sealed class ProformsController : ControllerBase
     public async Task<ActionResult<SendProformByEmailResponse>> SendByEmail(
         Guid id,
         [FromBody] SendProformByEmailRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(request.ToCommand(id), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Creates a temporary public share link for a proform PDF.
+    /// </summary>
+    /// <param name="id">The proform identifier.</param>
+    /// <param name="request">The request payload.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The generated share link.</returns>
+    [HttpPost("{id:guid}/share-link")]
+    [ProducesResponseType(typeof(CreateProformShareLinkResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CreateProformShareLinkResponse>> CreateShareLink(
+        Guid id,
+        [FromBody] CreateProformShareLinkRequest request,
         CancellationToken cancellationToken)
     {
         var response = await _sender.Send(request.ToCommand(id), cancellationToken);

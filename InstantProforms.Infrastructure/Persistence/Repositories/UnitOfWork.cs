@@ -27,7 +27,8 @@ public sealed class UnitOfWork : IUnitOfWork
         IRoleRepository roles,
         IRefreshTokenRepository refreshTokens,
         IProformRepository proforms,
-        IPasswordResetTokenRepository passwordResetTokens)
+        IPasswordResetTokenRepository passwordResetTokens,
+        IProformShareTokenRepository proformShareTokens)
     {
         _context = context;
         Companies = companies;
@@ -36,6 +37,7 @@ public sealed class UnitOfWork : IUnitOfWork
         RefreshTokens = refreshTokens;
         PasswordResetTokens = passwordResetTokens;
         Proforms = proforms;
+        ProformShareTokens = proformShareTokens;
     }
 
     /// <inheritdoc />
@@ -55,6 +57,9 @@ public sealed class UnitOfWork : IUnitOfWork
 
     /// <inheritdoc />
     public IPasswordResetTokenRepository PasswordResetTokens { get; }
+
+    /// <inheritdoc />
+    public IProformShareTokenRepository ProformShareTokens { get; }
 
     /// <inheritdoc />
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)

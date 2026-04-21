@@ -66,5 +66,14 @@ public sealed class Proform : BaseAuditableEntity
     /// <summary>
     /// Gets or sets the items in the proforms.
     /// </summary>
+
+    /// <summary>
+    /// Gets or sets the share tokens issued for this proform.
+    /// </summary>
+    public ICollection<ProformShareToken> ShareTokens { get; set; } = new List<ProformShareToken>();
+
+    /// <summary>
+    /// Gets or sets the items in the proforms.
+    /// </summary>
     public ICollection<ProformItem> Items { get; set; } = new List<ProformItem>();
 }

@@ -16,8 +16,8 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Proform> Proforms => Set<Proform>();
     public DbSet<ProformItem> ProformItems => Set<ProformItem>();
-
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<ProformShareToken> ProformShareTokens => Set<ProformShareToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

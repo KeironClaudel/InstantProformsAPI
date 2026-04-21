@@ -40,5 +40,10 @@ public interface IUnitOfWork
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The number of affected rows.</returns>
+
+    /// <summary>
+    /// Gets the proform share token repository.
+    /// </summary>
+    IProformShareTokenRepository ProformShareTokens { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -48,6 +48,8 @@ public static class DependencyInjection
         services.AddScoped<ITokenHashService, Sha256TokenHashService>();
         services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordResetSettings"));
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+        services.Configure<ProformShareSettings>(configuration.GetSection("ProformShareSettings"));
+        services.AddScoped<IProformShareTokenRepository, ProformShareTokenRepository>();
 
         return services;
     }
