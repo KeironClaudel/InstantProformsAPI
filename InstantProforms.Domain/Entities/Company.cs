@@ -43,6 +43,11 @@ public sealed class Company : BaseAuditableEntity
     public bool IsActive { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets the company settings.
+    /// </summary>
+    public CompanySettings? Settings { get; set; }
+
+    /// <summary>
     /// Gets or sets the users that belong to the company.
     /// </summary>
     public ICollection<User> Users { get; set; } = new List<User>();

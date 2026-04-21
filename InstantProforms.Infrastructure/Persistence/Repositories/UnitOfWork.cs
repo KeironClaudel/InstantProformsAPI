@@ -18,8 +18,9 @@ public sealed class UnitOfWork : IUnitOfWork
     /// <param name="users">The user repository.</param>
     /// <param name="roles">The role repository.</param>
     /// <param name="refreshTokens">The refresh token repository.</param>
-    /// <oaram name="passwordResetTokens">The password reset token repository.</param>
+    /// <param name="passwordResetTokens">The password reset token repository.</param>
     /// <param name="proforms">The proform repository.</param>
+    /// <param name="companySettings">The company settings repository.</param>
     public UnitOfWork(
         AppDbContext context,
         ICompanyRepository companies,
@@ -28,6 +29,7 @@ public sealed class UnitOfWork : IUnitOfWork
         IRefreshTokenRepository refreshTokens,
         IProformRepository proforms,
         IPasswordResetTokenRepository passwordResetTokens,
+        ICompanySettingsRepository companySettings,
         IProformShareTokenRepository proformShareTokens)
     {
         _context = context;
@@ -38,6 +40,7 @@ public sealed class UnitOfWork : IUnitOfWork
         PasswordResetTokens = passwordResetTokens;
         Proforms = proforms;
         ProformShareTokens = proformShareTokens;
+        CompanySettings = companySettings;
     }
 
     /// <inheritdoc />
@@ -60,6 +63,9 @@ public sealed class UnitOfWork : IUnitOfWork
 
     /// <inheritdoc />
     public IProformShareTokenRepository ProformShareTokens { get; }
+
+    // <inheritdoc />
+    public ICompanySettingsRepository CompanySettings { get; }
 
     /// <inheritdoc />
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)

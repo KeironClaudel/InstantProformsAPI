@@ -45,5 +45,16 @@ public interface IUnitOfWork
     /// Gets the proform share token repository.
     /// </summary>
     IProformShareTokenRepository ProformShareTokens { get; }
+
+    /// <summary>
+    /// Gets the company settings repository.
+    /// </summary>
+    ICompanySettingsRepository CompanySettings { get; }
+    
+    /// <summary>
+    /// Persists all pending changes to the data store.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The number of affected rows.</returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

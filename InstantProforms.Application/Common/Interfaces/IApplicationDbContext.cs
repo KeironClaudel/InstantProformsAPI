@@ -13,6 +13,7 @@ public interface IApplicationDbContext
     DbSet<ProformItem> ProformItems { get; }
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
     DbSet<ProformShareToken> ProformShareTokens { get; }
+    DbSet<CompanySettings> CompanySettings { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

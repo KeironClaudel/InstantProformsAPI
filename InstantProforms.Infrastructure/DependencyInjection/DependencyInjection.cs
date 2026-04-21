@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.Configure<ProformShareSettings>(configuration.GetSection("ProformShareSettings"));
         services.AddScoped<IProformShareTokenRepository, ProformShareTokenRepository>();
+        services.AddScoped<ICompanySettingsRepository, CompanySettingsRepository>();
 
         return services;
     }
