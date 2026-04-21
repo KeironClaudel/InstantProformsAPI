@@ -59,7 +59,8 @@ builder.Services.AddAuthorization();
 Console.WriteLine("Building application...");
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+builder.Services.AddProblemDetails();
 
 if (app.Environment.IsDevelopment())
 {
