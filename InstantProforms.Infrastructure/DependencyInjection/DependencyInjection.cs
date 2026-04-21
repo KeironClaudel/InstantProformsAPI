@@ -43,6 +43,8 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IProformRepository, ProformRepository>();
         services.AddScoped<IProformPdfService, QuestPdfProformPdfService>();
+        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+        services.AddScoped<IEmailService, SmtpEmailService>();
 
         return services;
     }

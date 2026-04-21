@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using InstantProforms.Application.Features.Proforms.UpdateProformStatus;
 using InstantProforms.Application.Features.Proforms.DownloadProformPdf;
+using InstantProforms.Application.Features.Proforms.SendProformByEmail;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -113,5 +114,23 @@ public sealed class ProformsController : ControllerBase
         var response = await _sender.Send(new DownloadProformPdfQuery(id), cancellationToken);
 
         return File(response.Content, response.ContentType, response.FileName);
+    }
+
+    /// <summary>
+    /// Sends a proform by email with a PDF attachment.
+    /// </summary>
+    /// <param name="id">The proform identifier.</param>
+    /// <param name="request">The request payload.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The email delivery result.</returns>
+    [HttpPost("{id:guid}/send-email")]
+    [ProducesResponseType(typeof(SendProformByEmailResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<SendProformByEmailResponse>> SendByEmail(
+        Guid id,
+        [FromBody] SendProformByEmailRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(request.ToCommand(id), cancellationToken);
+        return Ok(response);
     }
 }
