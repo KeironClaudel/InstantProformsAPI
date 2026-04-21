@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Logo2020.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Logo2020.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\InstantProforms.Application\InstantProforms.Application.csproj" />
     <ProjectReference Include="..\InstantProforms.Domain\InstantProforms.Domain.csproj" />
   </ItemGroup>

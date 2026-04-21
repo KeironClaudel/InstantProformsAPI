@@ -1,15 +1,16 @@
-using System.Text;
 using InstantProforms.Api.Middleware;
-using InstantProforms.Application.DependencyInjection;
-using InstantProforms.Application.Common.Models;
-using InstantProforms.Infrastructure.DependencyInjection;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using InstantProforms.Api.Services;
 using InstantProforms.Application.Common.Interfaces;
-using System.Globalization;
-using System.Threading.RateLimiting;
+using InstantProforms.Application.Common.Models;
+using InstantProforms.Application.DependencyInjection;
+using InstantProforms.Infrastructure.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
+using System.Globalization;
+using System.Text;
+using System.Threading.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -79,6 +80,8 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// QUEST PDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 // JWT SETTINGS
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
@@ -118,11 +121,11 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddAuthorization();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-builder.Services.AddProblemDetails();
 
 if (app.Environment.IsDevelopment())
 {
