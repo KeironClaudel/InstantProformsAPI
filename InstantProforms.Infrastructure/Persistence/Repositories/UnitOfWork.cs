@@ -17,19 +17,25 @@ public sealed class UnitOfWork : IUnitOfWork
     /// <param name="users">The user repository.</param>
     /// <param name="roles">The role repository.</param>
     /// <param name="refreshTokens">The refresh token repository.</param>
+    /// <param name="proforms">The proform repository.</param>
     public UnitOfWork(
         AppDbContext context,
         ICompanyRepository companies,
         IUserRepository users,
         IRoleRepository roles,
-        IRefreshTokenRepository refreshTokens)
+        IRefreshTokenRepository refreshTokens,
+        IProformRepository proforms)
     {
         _context = context;
         Companies = companies;
         Users = users;
         Roles = roles;
         RefreshTokens = refreshTokens;
+        Proforms = proforms;
     }
+
+    /// <inheritdoc />
+    public IProformRepository Proforms { get; }
 
     /// <inheritdoc />
     public ICompanyRepository Companies { get; }

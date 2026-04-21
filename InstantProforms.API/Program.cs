@@ -5,6 +5,8 @@ using InstantProforms.Application.Common.Models;
 using InstantProforms.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using InstantProforms.Api.Services;
+using InstantProforms.Application.Common.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,6 +50,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
+
+// Register the current user service
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddAuthorization();
 Console.WriteLine("Building application...");

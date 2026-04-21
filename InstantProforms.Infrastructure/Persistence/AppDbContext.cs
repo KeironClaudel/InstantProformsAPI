@@ -14,6 +14,8 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Proform> Proforms => Set<Proform>();
+    public DbSet<ProformItem> ProformItems => Set<ProformItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

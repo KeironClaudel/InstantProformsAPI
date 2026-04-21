@@ -26,6 +26,11 @@ public interface IUnitOfWork
     IRefreshTokenRepository RefreshTokens { get; }
 
     /// <summary>
+    /// Gets the proform repository.
+    /// </summary>
+    IProformRepository Proforms { get; }
+
+    /// <summary>
     /// Persists all pending changes to the data store.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
