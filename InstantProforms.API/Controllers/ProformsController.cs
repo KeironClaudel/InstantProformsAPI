@@ -9,6 +9,8 @@ using InstantProforms.Application.Features.Proforms.UpdateProformStatus;
 using InstantProforms.Application.Features.Proforms.DownloadProformPdf;
 using InstantProforms.Application.Features.Proforms.SendProformByEmail;
 using InstantProforms.Application.Features.Proforms.CreateProformShareLink;
+using InstantProforms.Application.Features.Proforms.GetActiveProformShareLinks;
+using InstantProforms.Application.Features.Proforms.RevokeProformShareLink;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -150,6 +152,46 @@ public sealed class ProformsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var response = await _sender.Send(request.ToCommand(id), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Gets active share links for a proform.
+    /// </summary>
+    /// <param name="id">The proform identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The list of active share links.</returns>
+    [HttpGet("{id:guid}/share-links")]
+    [ProducesResponseType(typeof(GetActiveProformShareLinksResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<GetActiveProformShareLinksResponse>> GetActiveShareLinks(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(
+            new GetActiveProformShareLinksQuery(id),
+            cancellationToken);
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Revokes an active share link for a proform.
+    /// </summary>
+    /// <param name="id">The proform identifier.</param>
+    /// <param name="shareTokenId">The share token identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The revoke result.</returns>
+    [HttpDelete("{id:guid}/share-links/{shareTokenId:guid}")]
+    [ProducesResponseType(typeof(RevokeProformShareLinkResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<RevokeProformShareLinkResponse>> RevokeShareLink(
+        Guid id,
+        Guid shareTokenId,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(
+            new RevokeProformShareLinkCommand(id, shareTokenId),
+            cancellationToken);
+
         return Ok(response);
     }
 }

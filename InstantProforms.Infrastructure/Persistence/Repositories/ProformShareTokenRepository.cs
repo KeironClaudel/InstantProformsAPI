@@ -34,4 +34,32 @@ public sealed class ProformShareTokenRepository : IProformShareTokenRepository
             .ThenInclude(x => x.Items)
             .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<ProformShareToken?> GetActiveByIdAsync(
+        Guid shareTokenId,
+        Guid proformId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.ProformShareTokens
+            .FirstOrDefaultAsync(
+                x => x.Id == shareTokenId &&
+                     x.ProformId == proformId &&
+                     x.ExpiresAtUtc > DateTime.UtcNow &&
+                     (!x.IsSingleUse || x.UsedAtUtc == null),
+                cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ProformShareToken>> GetActiveByProformIdAsync(
+        Guid proformId,
+        CancellationToken cancellationToken)
+    {
+        return await _context.ProformShareTokens
+            .Where(x => x.ProformId == proformId &&
+                        x.ExpiresAtUtc > DateTime.UtcNow &&
+                        (!x.IsSingleUse || x.UsedAtUtc == null))
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
 }
