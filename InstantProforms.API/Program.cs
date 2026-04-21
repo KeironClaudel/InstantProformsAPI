@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using InstantProforms.Api.Services;
 using InstantProforms.Application.Common.Interfaces;
+using System.Globalization;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +20,65 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// RATE LIMITER
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString(NumberFormatInfo.InvariantInfo);
+        }
+
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var traceId = context.HttpContext.TraceIdentifier;
+
+        var response = new
+        {
+            title = "Too many requests",
+            status = StatusCodes.Status429TooManyRequests,
+            detail = "Too many requests were sent. Please try again later.",
+            traceId
+        };
+
+        await context.HttpContext.Response.WriteAsJsonAsync(response, cancellationToken);
+    };
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown-ip",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+
+    options.AddFixedWindowLimiter("auth-strict", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+        limiterOptions.AutoReplenishment = true;
+    });
+
+    options.AddFixedWindowLimiter("auth-medium", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 20;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+        limiterOptions.AutoReplenishment = true;
+    });
+});
+
 
 // JWT SETTINGS
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
@@ -56,7 +118,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddAuthorization();
-Console.WriteLine("Building application...");
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
@@ -68,6 +130,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

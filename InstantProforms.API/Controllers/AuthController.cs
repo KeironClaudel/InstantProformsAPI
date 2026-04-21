@@ -10,9 +10,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using InstantProforms.Application.Features.Auth.ForgotPassword;
 using InstantProforms.Application.Features.Auth.ResetPassword;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace InstantProforms.Api.Controllers;
 
+/// <summary>
+/// Controller responsible for handling authentication-related operations such as user registration, login, token refresh, logout, and password management.
+/// </summary>
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController : ControllerBase
@@ -24,6 +28,13 @@ public sealed class AuthController : ControllerBase
         _sender = sender;
     }
 
+    /// <summary>
+    /// Registers a new company along with an initial admin user. This endpoint is typically used for onboarding new customers to the platform.
+    /// </summary>
+    /// <param name="request">The registration request payload containing company and admin user details.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The result of the registration process, including the new company and user identifiers.</returns>
+    [EnableRateLimiting("auth-strict")]
     [HttpPost("register-company")]
     [ProducesResponseType(typeof(RegisterCompanyResponse), StatusCodes.Status201Created)]
     public async Task<ActionResult<RegisterCompanyResponse>> RegisterCompany(
@@ -34,6 +45,13 @@ public sealed class AuthController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, response);
     }
 
+    /// <summary>
+    /// Authenticates a user and issues access and refresh tokens, which are set in secure HTTP-only cookies.
+    /// </summary>
+    /// <param name="request">The login request payload containing user credentials.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The authenticated user's information along with the issued tokens set in cookies.</returns>
+    [EnableRateLimiting("auth-strict")]
     [HttpPost("login")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<ActionResult> Login(
@@ -55,6 +73,12 @@ public sealed class AuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Refreshes the access token using a valid refresh token from the cookie.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A generic success response with new tokens set in cookies.</returns>
+    [EnableRateLimiting("auth-strict")]
     [HttpPost("refresh")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> Refresh(CancellationToken cancellationToken)
@@ -75,6 +99,12 @@ public sealed class AuthController : ControllerBase
         return Ok(new { message = "Token refreshed successfully." });
     }
 
+    /// <summary>
+    /// Logs out the current user by invalidating the refresh token and clearing authentication cookies.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A generic success response indicating the user has been logged out.</returns>
+    [EnableRateLimiting("auth-medium")]
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> Logout(CancellationToken cancellationToken)
@@ -90,6 +120,11 @@ public sealed class AuthController : ControllerBase
         return Ok(new { message = "Logged out successfully." });
     }
 
+    /// <summary>
+    /// Gets the current authenticated user's information.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The current user's details.</returns>
     [Authorize]
     [HttpGet("me")]
     [ProducesResponseType(typeof(GetCurrentUserResponse), StatusCodes.Status200OK)]
@@ -115,7 +150,8 @@ public sealed class AuthController : ControllerBase
     /// </summary>
     /// <param name="request">The request payload.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A generic success response.</returns>
+    /// <returns>The result of the forgot password request, typically indicating that an email has been sent if the user exists.</returns>
+    [EnableRateLimiting("auth-strict")]
     [HttpPost("forgot-password")]
     [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ForgotPasswordResponse>> ForgotPassword(
@@ -131,7 +167,8 @@ public sealed class AuthController : ControllerBase
     /// </summary>
     /// <param name="request">The request payload.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The password reset result.</returns>
+    /// <returns>The result of the reset password request, typically indicating that the password has been successfully reset.</returns>
+    [EnableRateLimiting("auth-strict")]
     [HttpPost("reset-password")]
     [ProducesResponseType(typeof(ResetPasswordResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResetPasswordResponse>> ResetPassword(
