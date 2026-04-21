@@ -80,9 +80,6 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// QUEST PDF
-QuestPDF.Settings.License = LicenseType.Community;
-
 // JWT SETTINGS
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JwtSettings configuration is missing.");

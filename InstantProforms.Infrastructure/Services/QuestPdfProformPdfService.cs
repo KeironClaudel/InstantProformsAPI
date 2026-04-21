@@ -2,7 +2,6 @@
 using InstantProforms.Application.Features.Proforms.GetProformById;
 using InstantProforms.Infrastructure.Services.Pdf;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace InstantProforms.Infrastructure.Services;
@@ -13,9 +12,13 @@ namespace InstantProforms.Infrastructure.Services;
 public sealed class QuestPdfProformPdfService : IProformPdfService
 {
     /// <inheritdoc />
-    public byte[] Generate(GetProformByIdResponse data)
+    public byte[] Generate(GetProformByIdResponse proform)
     {
-        var document = new ProformPdfDocument(data);
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        var logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Logo2020.png");
+        var document = new ProformPdfDocument(proform, logoPath);
+
         return document.GeneratePdf();
     }
 }
