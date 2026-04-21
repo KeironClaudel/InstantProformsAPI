@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IProformRepository, ProformRepository>();
+        services.AddScoped<IProformPdfService, QuestPdfProformPdfService>();
 
         return services;
     }

@@ -49,6 +49,15 @@ public sealed class ProformRepository : IProformRepository
     }
 
     /// <inheritdoc />
+    public async Task<Proform?> GetByIdAsync(Guid proformId, Guid companyId, CancellationToken cancellationToken)
+    {
+        return await _context.Proforms
+            .FirstOrDefaultAsync(
+                x => x.Id == proformId && x.CompanyId == companyId,
+                cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<(IReadOnlyList<Proform> Items, int TotalCount)> GetPagedAsync(
         Guid companyId,
         int page,

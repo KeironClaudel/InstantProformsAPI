@@ -5,6 +5,8 @@ using InstantProforms.Application.Features.Proforms.GetProformById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using InstantProforms.Application.Features.Proforms.UpdateProformStatus;
+using InstantProforms.Application.Features.Proforms.DownloadProformPdf;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -78,5 +80,38 @@ public sealed class ProformsController : ControllerBase
             cancellationToken);
 
         return Ok(response);
+    }
+
+    /// <summary>
+    /// Updates the status of a proform.
+    /// </summary>
+    /// <param name="id">The proform identifier.</param>
+    /// <param name="request">The request payload.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The updated status result.</returns>
+    [HttpPatch("{id:guid}/status")]
+    [ProducesResponseType(typeof(UpdateProformStatusResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<UpdateProformStatusResponse>> UpdateStatus(
+        Guid id,
+        [FromBody] UpdateProformStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(request.ToCommand(id), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Downloads a PDF representation of a proform.
+    /// </summary>
+    /// <param name="id">The proform identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The generated PDF file.</returns>
+    [HttpGet("{id:guid}/pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> DownloadPdf(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(new DownloadProformPdfQuery(id), cancellationToken);
+
+        return File(response.Content, response.ContentType, response.FileName);
     }
 }

@@ -32,6 +32,15 @@ public interface IProformRepository
     Task<Proform?> GetLatestByCompanyAsync(Guid companyId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Gets a proform by identifier for a specific company.
+    /// </summary>
+    /// <param name="proformId">The proform identifier.</param>
+    /// <param name="companyId">The company identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The matching proform if found; otherwise, <c>null</c>.</returns>
+    Task<Proform?> GetByIdAsync(Guid proformId, Guid companyId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Gets a paginated list of Proforms for a company.
     /// </summary>
     /// <param name="companyId">The company identifier.</param>
