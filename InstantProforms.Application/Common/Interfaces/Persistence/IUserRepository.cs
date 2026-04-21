@@ -37,5 +37,13 @@ public interface IUserRepository
     /// <param name="user">The user to add.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
+
+    /// <summary>
+    /// Gets a user by email, including its role.
+    /// </summary>
+    /// <param name="email">The email address.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The matching user if found; otherwise, <c>null</c>.</returns>
+    Task<User?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken);
     Task AddAsync(User user, CancellationToken cancellationToken);
 }

@@ -26,6 +26,11 @@ public interface IUnitOfWork
     IRefreshTokenRepository RefreshTokens { get; }
 
     /// <summary>
+    /// Gets the password reset token repository.
+    /// </summary>
+    IPasswordResetTokenRepository PasswordResetTokens { get; }
+
+    /// <summary>
     /// Gets the proform repository.
     /// </summary>
     IProformRepository Proforms { get; }

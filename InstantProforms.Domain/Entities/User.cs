@@ -13,9 +13,14 @@ public sealed class User : BaseAuditableEntity
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-
     public Company Company { get; set; } = null!;
     public Role Role { get; set; } = null!;
+
+
+    /// <summary>
+    /// Gets or sets the password reset tokens issued to the user.
+    /// </summary>
+    public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 
     /// <summary>
     /// Gets or sets the refresh tokens issued to the user.

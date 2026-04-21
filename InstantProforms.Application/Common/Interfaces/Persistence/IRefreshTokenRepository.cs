@@ -30,4 +30,12 @@ public interface IRefreshTokenRepository
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The matching refresh token if found; otherwise, <c>null</c>.</returns>
     Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets active refresh tokens by user identifier.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The active refresh tokens.</returns>
+    Task<IReadOnlyList<RefreshToken>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken);
 }

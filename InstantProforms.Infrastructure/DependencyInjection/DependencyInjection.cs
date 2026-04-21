@@ -45,6 +45,9 @@ public static class DependencyInjection
         services.AddScoped<IProformPdfService, QuestPdfProformPdfService>();
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
         services.AddScoped<IEmailService, SmtpEmailService>();
+        services.AddScoped<ITokenHashService, Sha256TokenHashService>();
+        services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordResetSettings"));
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
         return services;
     }

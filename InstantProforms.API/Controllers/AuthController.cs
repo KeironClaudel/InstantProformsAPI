@@ -8,6 +8,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using InstantProforms.Application.Features.Auth.ForgotPassword;
+using InstantProforms.Application.Features.Auth.ResetPassword;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -105,6 +107,39 @@ public sealed class AuthController : ControllerBase
         }
 
         var response = await _sender.Send(new GetCurrentUserQuery(userId), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Starts the forgot password flow.
+    /// </summary>
+    /// <param name="request">The request payload.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A generic success response.</returns>
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ForgotPasswordResponse>> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(request.ToCommand(), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Resets a user password using a valid reset token.
+    /// </summary>
+    /// <param name="request">The request payload.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The password reset result.</returns>
+    [HttpPost("reset-password")]
+    [ProducesResponseType(typeof(ResetPasswordResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ResetPasswordResponse>> ResetPassword(
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(request.ToCommand(), cancellationToken);
+        Response.ClearAuthCookies();
         return Ok(response);
     }
 }

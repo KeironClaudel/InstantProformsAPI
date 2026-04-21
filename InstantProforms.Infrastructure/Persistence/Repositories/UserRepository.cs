@@ -48,4 +48,12 @@ public sealed class UserRepository : IUserRepository
     {
         await _context.Users.AddAsync(user, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<User?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken)
+    {
+        return await _context.Users
+            .Include(x => x.Role)
+            .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+    }
 }

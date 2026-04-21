@@ -1,4 +1,5 @@
 ﻿using InstantProforms.Application.Common.Interfaces.Persistence;
+using InstantProforms.Domain.Entities;
 
 namespace InstantProforms.Infrastructure.Persistence.Repositories;
 
@@ -17,6 +18,7 @@ public sealed class UnitOfWork : IUnitOfWork
     /// <param name="users">The user repository.</param>
     /// <param name="roles">The role repository.</param>
     /// <param name="refreshTokens">The refresh token repository.</param>
+    /// <oaram name="passwordResetTokens">The password reset token repository.</param>
     /// <param name="proforms">The proform repository.</param>
     public UnitOfWork(
         AppDbContext context,
@@ -24,13 +26,15 @@ public sealed class UnitOfWork : IUnitOfWork
         IUserRepository users,
         IRoleRepository roles,
         IRefreshTokenRepository refreshTokens,
-        IProformRepository proforms)
+        IProformRepository proforms,
+        IPasswordResetTokenRepository passwordResetTokens)
     {
         _context = context;
         Companies = companies;
         Users = users;
         Roles = roles;
         RefreshTokens = refreshTokens;
+        PasswordResetTokens = passwordResetTokens;
         Proforms = proforms;
     }
 
@@ -48,6 +52,9 @@ public sealed class UnitOfWork : IUnitOfWork
 
     /// <inheritdoc />
     public IRefreshTokenRepository RefreshTokens { get; }
+
+    /// <inheritdoc />
+    public IPasswordResetTokenRepository PasswordResetTokens { get; }
 
     /// <inheritdoc />
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
