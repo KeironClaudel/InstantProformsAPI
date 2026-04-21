@@ -1,34 +1,42 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Application.Common.Models;
 using InstantProforms.Domain.Entities;
 
 namespace InstantProforms.Application.Features.Auth.RefToken;
 
+/// <summary>
+/// Handles refresh token rotation and access token renewal.
+/// </summary>
 public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly JwtSettings _jwtSettings;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RefreshTokenCommandHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work.</param>
+    /// <param name="jwtTokenService">The JWT token service.</param>
+    /// <param name="jwtSettings">The JWT configuration settings.</param>
     public RefreshTokenCommandHandler(
-        IApplicationDbContext context,
+        IUnitOfWork unitOfWork,
         IJwtTokenService jwtTokenService,
         IOptions<JwtSettings> jwtSettings)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _jwtTokenService = jwtTokenService;
         _jwtSettings = jwtSettings.Value;
     }
 
+    /// <inheritdoc />
     public async Task<RefreshTokenResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var storedToken = await _context.RefreshTokens
-            .Include(x => x.User)
-            .ThenInclude(x => x.Role)
-            .FirstOrDefaultAsync(x => x.Token == request.RefreshToken, cancellationToken);
+        var storedToken = await _unitOfWork.RefreshTokens
+            .GetByTokenWithUserAsync(request.RefreshToken, cancellationToken);
 
         if (storedToken is null || !storedToken.IsActive || !storedToken.User.IsActive)
         {
@@ -49,8 +57,8 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        _context.RefreshTokens.Add(newRefreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.RefreshTokens.AddAsync(newRefreshToken, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RefreshTokenResponse(newAccessToken, newRefreshTokenValue);
     }

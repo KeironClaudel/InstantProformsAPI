@@ -1,47 +1,56 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Common;
 using InstantProforms.Domain.Entities;
 
 namespace InstantProforms.Application.Features.Auth.RegisterCompany;
 
+/// <summary>
+/// Handles company registration and owner user creation.
+/// </summary>
 public sealed class RegisterCompanyCommandHandler
     : IRequestHandler<RegisterCompanyCommand, RegisterCompanyResponse>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RegisterCompanyCommandHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work.</param>
+    /// <param name="passwordHasher">The password hasher.</param>
     public RegisterCompanyCommandHandler(
-        IApplicationDbContext context,
+        IUnitOfWork unitOfWork,
         IPasswordHasher passwordHasher)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
     }
 
+    /// <inheritdoc />
     public async Task<RegisterCompanyResponse> Handle(
         RegisterCompanyCommand request,
         CancellationToken cancellationToken)
     {
-        var slugExists = await _context.Companies
-            .AnyAsync(x => x.Slug == request.CompanySlug, cancellationToken);
+        var slugExists = await _unitOfWork.Companies
+            .SlugExistsAsync(request.CompanySlug, cancellationToken);
 
         if (slugExists)
         {
             throw new InvalidOperationException("The company slug is already in use.");
         }
 
-        var ownerEmailExists = await _context.Users
-            .AnyAsync(x => x.Email == request.OwnerEmail, cancellationToken);
+        var ownerEmailExists = await _unitOfWork.Users
+            .EmailExistsAsync(request.OwnerEmail, cancellationToken);
 
         if (ownerEmailExists)
         {
             throw new InvalidOperationException("The owner email is already in use.");
         }
 
-        var ownerRole = await _context.Roles
-            .FirstOrDefaultAsync(x => x.Id == RoleIds.Owner && x.IsActive, cancellationToken);
+        var ownerRole = await _unitOfWork.Roles
+            .GetActiveByIdAsync(RoleIds.Owner, cancellationToken);
 
         if (ownerRole is null)
         {
@@ -74,10 +83,9 @@ public sealed class RegisterCompanyCommandHandler
             CreatedAtUtc = utcNow
         };
 
-        _context.Companies.Add(company);
-        _context.Users.Add(ownerUser);
-
-        await _context.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.Companies.AddAsync(company, cancellationToken);
+        await _unitOfWork.Users.AddAsync(ownerUser, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RegisterCompanyResponse(
             company.Id,

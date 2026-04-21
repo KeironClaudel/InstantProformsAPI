@@ -1,27 +1,34 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces.Persistence;
 
 namespace InstantProforms.Application.Features.Auth.Logout;
 
+/// <summary>
+/// Handles refresh token revocation during logout.
+/// </summary>
 public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public LogoutCommandHandler(IApplicationDbContext context)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LogoutCommandHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work.</param>
+    public LogoutCommandHandler(IUnitOfWork unitOfWork)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
     }
 
+    /// <inheritdoc />
     public async Task Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
-        var storedToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(x => x.Token == request.RefreshToken, cancellationToken);
+        var storedToken = await _unitOfWork.RefreshTokens
+            .GetByTokenAsync(request.RefreshToken, cancellationToken);
 
         if (storedToken is not null && storedToken.RevokedAtUtc is null)
         {
             storedToken.RevokedAtUtc = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

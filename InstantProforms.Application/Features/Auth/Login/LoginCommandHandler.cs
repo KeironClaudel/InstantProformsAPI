@@ -1,36 +1,46 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Application.Common.Models;
 using InstantProforms.Domain.Entities;
 
 namespace InstantProforms.Application.Features.Auth.Login;
 
+/// <summary>
+/// Handles user login and token issuance.
+/// </summary>
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly JwtSettings _jwtSettings;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoginCommandHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work.</param>
+    /// <param name="passwordHasher">The password hasher.</param>
+    /// <param name="jwtTokenService">The JWT token service.</param>
+    /// <param name="jwtSettings">The JWT configuration settings.</param>
     public LoginCommandHandler(
-        IApplicationDbContext context,
+        IUnitOfWork unitOfWork,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
         IOptions<JwtSettings> jwtSettings)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _jwtSettings = jwtSettings.Value;
     }
 
+    /// <inheritdoc />
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users
-            .Include(x => x.Role)
-            .FirstOrDefaultAsync(x => x.Email == request.Email && x.IsActive, cancellationToken);
+        var user = await _unitOfWork.Users
+            .GetActiveByEmailWithRoleAsync(request.Email, cancellationToken);
 
         if (user is null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
         {
@@ -46,12 +56,11 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
             UserId = user.Id,
             Token = refreshTokenValue,
             ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
-            CreatedAtUtc = DateTime.UtcNow,
-            CreatedByIp = null
+            CreatedAtUtc = DateTime.UtcNow
         };
 
-        _context.RefreshTokens.Add(refreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new LoginResponse(
             accessToken,

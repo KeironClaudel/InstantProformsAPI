@@ -1,23 +1,29 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces.Persistence;
 
 namespace InstantProforms.Application.Features.Auth.GetCurrentUser;
 
+/// <summary>
+/// Handles retrieval of the currently authenticated user.
+/// </summary>
 public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, GetCurrentUserResponse>
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetCurrentUserQueryHandler(IApplicationDbContext context)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetCurrentUserQueryHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">The unit of work.</param>
+    public GetCurrentUserQueryHandler(IUnitOfWork unitOfWork)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
     }
 
+    /// <inheritdoc />
     public async Task<GetCurrentUserResponse> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users
-            .Include(x => x.Role)
-            .FirstOrDefaultAsync(x => x.Id == request.UserId && x.IsActive, cancellationToken);
+        var user = await _unitOfWork.Users
+            .GetActiveByIdWithRoleAsync(request.UserId, cancellationToken);
 
         if (user is null)
         {
