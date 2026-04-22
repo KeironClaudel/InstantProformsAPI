@@ -1,16 +1,19 @@
-﻿using InstantProforms.Api.Contracts.Auth;
+﻿using InstantProforms.Api.Common.Extensions;
+using InstantProforms.Api.Contracts.Auth;
 using InstantProforms.Api.Extensions;
+using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Features.Auth.ForgotPassword;
 using InstantProforms.Application.Features.Auth.GetCurrentUser;
 using InstantProforms.Application.Features.Auth.Logout;
 using InstantProforms.Application.Features.Auth.RefToken;
 using InstantProforms.Application.Features.Auth.RegisterCompany;
+using InstantProforms.Application.Features.Auth.ResetPassword;
+using InstantProforms.Infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using InstantProforms.Application.Features.Auth.ForgotPassword;
-using InstantProforms.Application.Features.Auth.ResetPassword;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -22,10 +25,12 @@ namespace InstantProforms.Api.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ICsrfTokenService _csrfTokenService;
 
-    public AuthController(ISender sender)
+    public AuthController(ISender sender, ICsrfTokenService csrfTokenService)
     {
         _sender = sender;
+        _csrfTokenService = csrfTokenService;
     }
 
     /// <summary>
@@ -65,6 +70,9 @@ public sealed class AuthController : ControllerBase
         Response.AppendAccessTokenCookie(response.AccessToken);
         Response.AppendRefreshTokenCookie(response.RefreshToken);
 
+        var csrfToken = _csrfTokenService.GenerateToken();
+        Response.AppendCsrfCookie(csrfToken);
+
         return Ok(new
         {
             response.UserId,
@@ -98,6 +106,9 @@ public sealed class AuthController : ControllerBase
         Response.AppendAccessTokenCookie(response.AccessToken);
         Response.AppendRefreshTokenCookie(response.RefreshToken);
 
+        var csrfToken = _csrfTokenService.GenerateToken();
+        Response.AppendCsrfCookie(csrfToken);
+
         return Ok(new { message = "Token refreshed successfully." });
     }
 
@@ -118,6 +129,7 @@ public sealed class AuthController : ControllerBase
             await _sender.Send(new LogoutCommand(refreshToken), cancellationToken);
         }
 
+        Response.DeleteCsrfCookie();
         Response.ClearAuthCookies();
 
         return Ok(new { message = "Logged out successfully." });
@@ -182,6 +194,7 @@ public sealed class AuthController : ControllerBase
     {
         var response = await _sender.Send(request.ToCommand(), cancellationToken);
         Response.ClearAuthCookies();
+        Response.DeleteCsrfCookie();
         return Ok(response);
     }
 }

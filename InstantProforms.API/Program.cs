@@ -155,6 +155,7 @@ app.UseRouting();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.UseMiddleware<CsrfValidationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

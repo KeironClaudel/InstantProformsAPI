@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<ICompanySettingsRepository, CompanySettingsRepository>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IStoredFileRepository, StoredFileRepository>();
+        services.AddScoped<ICsrfTokenService, CsrfTokenService>();
 
         return services;
     }
