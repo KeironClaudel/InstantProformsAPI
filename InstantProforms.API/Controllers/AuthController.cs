@@ -36,6 +36,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>The result of the registration process, including the new company and user identifiers.</returns>
     [EnableRateLimiting("auth-strict")]
     [HttpPost("register-company")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(RegisterCompanyResponse), StatusCodes.Status201Created)]
     public async Task<ActionResult<RegisterCompanyResponse>> RegisterCompany(
         [FromForm] RegisterCompanyRequest request,
@@ -53,6 +54,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>The authenticated user's information along with the issued tokens set in cookies.</returns>
     [EnableRateLimiting("auth-strict")]
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<ActionResult> Login(
         [FromBody] LoginRequest request,
@@ -106,6 +108,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>A generic success response indicating the user has been logged out.</returns>
     [EnableRateLimiting("auth-medium")]
     [HttpPost("logout")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> Logout(CancellationToken cancellationToken)
     {
@@ -153,6 +156,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>The result of the forgot password request, typically indicating that an email has been sent if the user exists.</returns>
     [EnableRateLimiting("auth-strict")]
     [HttpPost("forgot-password")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ForgotPasswordResponse>> ForgotPassword(
         [FromBody] ForgotPasswordRequest request,
@@ -170,6 +174,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>The result of the reset password request, typically indicating that the password has been successfully reset.</returns>
     [EnableRateLimiting("auth-strict")]
     [HttpPost("reset-password")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ResetPasswordResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResetPasswordResponse>> ResetPassword(
         [FromBody] ResetPasswordRequest request,

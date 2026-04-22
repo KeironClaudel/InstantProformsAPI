@@ -1,6 +1,7 @@
-﻿using MediatR;
+﻿using InstantProforms.Application.Features.Proforms.DownloadSharedProformPdf;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using InstantProforms.Application.Features.Proforms.DownloadSharedProformPdf;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -8,6 +9,7 @@ namespace InstantProforms.Api.Controllers;
 /// Provides public endpoints for shared proform downloads.
 /// </summary>
 [ApiController]
+[AllowAnonymous]
 [Route("api/public/proforms")]
 public sealed class PublicProformsController : ControllerBase
 {
