@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IProformShareTokenRepository, ProformShareTokenRepository>();
         services.AddScoped<ICompanySettingsRepository, CompanySettingsRepository>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IStoredFileRepository, StoredFileRepository>();
 
         return services;
     }

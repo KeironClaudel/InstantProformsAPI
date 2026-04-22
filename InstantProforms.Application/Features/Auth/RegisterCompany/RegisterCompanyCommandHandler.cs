@@ -73,15 +73,29 @@ public sealed class RegisterCompanyCommandHandler
             CreatedAtUtc = utcNow
         };
 
-        string logoFileName;
+        FileStorageSaveResult logoSaveResult;
         await using (var logoStream = request.LogoFile.OpenReadStream())
         {
-            logoFileName = await _fileStorageService.SaveCompanyLogoAsync(
+            logoSaveResult = await _fileStorageService.SaveCompanyLogoAsync(
                 companyId,
                 request.LogoFile.FileName,
                 logoStream,
                 cancellationToken);
         }
+
+        var storedLogo = new StoredFile
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = companyId,
+            OriginalFileName = request.LogoFile.FileName,
+            StoredFileName = logoSaveResult.StoredFileName,
+            RelativePath = logoSaveResult.RelativePath,
+            ContentType = request.LogoFile.ContentType,
+            SizeBytes = request.LogoFile.Length,
+            Purpose = "company-logo",
+            IsActive = true,
+            CreatedAtUtc = utcNow
+        };
 
         var companySettings = new CompanySettings
         {
@@ -94,7 +108,8 @@ public sealed class RegisterCompanyCommandHandler
             Email = request.CompanyEmail,
             Address = request.CompanyAddress,
             TermsAndConditions = request.TermsAndConditions,
-            LogoFileName = logoFileName,
+            LogoFileName = logoSaveResult.RelativePath,
+            LogoStoredFileId = storedLogo.Id,
             PrimaryColor = request.PrimaryColor,
             SecondaryColor = request.SecondaryColor,
             AccentColor = request.AccentColor,
@@ -116,6 +131,7 @@ public sealed class RegisterCompanyCommandHandler
             CreatedAtUtc = utcNow
         };
 
+        await _unitOfWork.StoredFiles.AddAsync(storedLogo, cancellationToken);
         await _unitOfWork.Companies.AddAsync(company, cancellationToken);
         await _unitOfWork.CompanySettings.AddAsync(companySettings, cancellationToken);
         await _unitOfWork.Users.AddAsync(ownerUser, cancellationToken);

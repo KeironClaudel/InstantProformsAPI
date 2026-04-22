@@ -14,6 +14,6 @@ public interface IApplicationDbContext
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
     DbSet<ProformShareToken> ProformShareTokens { get; }
     DbSet<CompanySettings> CompanySettings { get; }
-
+    DbSet<StoredFile> StoredFiles { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

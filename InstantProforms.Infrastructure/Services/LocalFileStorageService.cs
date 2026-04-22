@@ -8,7 +8,7 @@ namespace InstantProforms.Infrastructure.Services;
 public sealed class LocalFileStorageService : IFileStorageService
 {
     /// <inheritdoc />
-    public async Task<string> SaveCompanyLogoAsync(
+    public async Task<FileStorageSaveResult> SaveCompanyLogoAsync(
         Guid companyId,
         string fileName,
         Stream content,
@@ -17,7 +17,13 @@ public sealed class LocalFileStorageService : IFileStorageService
         var extension = Path.GetExtension(fileName);
         var storedFileName = $"{Guid.NewGuid()}{extension}";
 
-        var rootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "uploads", "company-logos", companyId.ToString());
+        var rootPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "wwwroot",
+            "uploads",
+            "company-logos",
+            companyId.ToString());
+
         Directory.CreateDirectory(rootPath);
 
         var fullPath = Path.Combine(rootPath, storedFileName);
@@ -25,6 +31,22 @@ public sealed class LocalFileStorageService : IFileStorageService
         await using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None);
         await content.CopyToAsync(fileStream, cancellationToken);
 
-        return Path.Combine(companyId.ToString(), storedFileName).Replace("\\", "/");
+        var relativePath = Path.Combine("uploads", "company-logos", companyId.ToString(), storedFileName)
+            .Replace("\\", "/");
+
+        return new FileStorageSaveResult(storedFileName, relativePath);
+    }
+
+    /// <inheritdoc />
+    public Task DeleteAsync(string relativePath)
+    {
+        var fullPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+
+        return Task.CompletedTask;
     }
 }

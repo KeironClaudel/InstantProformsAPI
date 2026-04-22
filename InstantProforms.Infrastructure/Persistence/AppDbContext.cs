@@ -19,6 +19,7 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<ProformShareToken> ProformShareTokens => Set<ProformShareToken>();
     public DbSet<CompanySettings> CompanySettings => Set<CompanySettings>();
+    public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

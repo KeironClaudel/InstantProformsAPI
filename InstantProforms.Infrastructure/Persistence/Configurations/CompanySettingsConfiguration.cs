@@ -38,9 +38,6 @@ public sealed class CompanySettingsConfiguration : IEntityTypeConfiguration<Comp
         builder.Property(x => x.TermsAndConditions)
             .HasMaxLength(4000);
 
-        builder.Property(x => x.LogoFileName)
-            .HasMaxLength(255);
-
         builder.Property(x => x.PrimaryColor)
             .HasMaxLength(20);
 
@@ -64,6 +61,11 @@ public sealed class CompanySettingsConfiguration : IEntityTypeConfiguration<Comp
 
         builder.HasIndex(x => x.CompanyId)
             .IsUnique();
+
+        builder.HasOne(x => x.LogoStoredFile)
+    .WithMany()
+    .HasForeignKey(x => x.LogoStoredFileId)
+    .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(x => x.Company)
             .WithOne(x => x.Settings)

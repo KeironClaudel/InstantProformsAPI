@@ -50,7 +50,12 @@ public interface IUnitOfWork
     /// Gets the company settings repository.
     /// </summary>
     ICompanySettingsRepository CompanySettings { get; }
-    
+
+    /// <summary>
+    /// Gets the stored file repository.
+    /// </summary>
+    IStoredFileRepository StoredFiles { get; }
+
     /// <summary>
     /// Persists all pending changes to the data store.
     /// </summary>

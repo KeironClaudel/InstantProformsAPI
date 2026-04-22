@@ -16,9 +16,20 @@ public sealed class QuestPdfProformPdfService : IProformPdfService
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
-        var logoPath = string.IsNullOrWhiteSpace(model.LogoFileName)
-            ? Path.Combine(AppContext.BaseDirectory, "Assets", "Logo2020.png")
-            : Path.Combine(AppContext.BaseDirectory, "wwwroot", "uploads", "company-logos", model.LogoFileName.Replace("/", Path.DirectorySeparatorChar.ToString()));
+        var basePath = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+        var logoPath = Path.Combine(basePath, "Assets", "default-logo.png"); // fallback
+
+        if (!string.IsNullOrWhiteSpace(model.LogoFileName))
+        {
+            var candidatePath = Path.Combine(
+                basePath,
+                model.LogoFileName.Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+            if (File.Exists(candidatePath))
+            {
+                logoPath = candidatePath;
+            }
+        }
 
         var document = new ProformPdfDocument(model, logoPath);
 

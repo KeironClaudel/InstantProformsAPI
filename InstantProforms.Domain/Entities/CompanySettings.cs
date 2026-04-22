@@ -33,6 +33,11 @@ public sealed class CompanySettings : BaseAuditableEntity
     public string? Phone { get; set; }
 
     /// <summary>
+    /// Gets or sets the stored logo file name.
+    /// </summary>
+    public string? LogoFileName { get; set; }
+
+    /// <summary>
     /// Gets or sets the contact email.
     /// </summary>
     public string? Email { get; set; }
@@ -46,11 +51,6 @@ public sealed class CompanySettings : BaseAuditableEntity
     /// Gets or sets the terms and conditions used in proforms.
     /// </summary>
     public string? TermsAndConditions { get; set; }
-
-    /// <summary>
-    /// Gets or sets the stored logo file name.
-    /// </summary>
-    public string? LogoFileName { get; set; }
 
     /// <summary>
     /// Gets or sets the primary branding color.
@@ -85,5 +85,15 @@ public sealed class CompanySettings : BaseAuditableEntity
     /// <summary>
     /// Gets or sets the related company.
     /// </summary>
+    
+    /// <summary>
+    /// Gets or sets the stored file identifier for the company logo.
+    /// </summary>
+    public Guid? LogoStoredFileId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the stored file metadata for the company logo.
+    /// </summary>
+    public StoredFile? LogoStoredFile { get; set; }
     public Company Company { get; set; } = null!;
 }

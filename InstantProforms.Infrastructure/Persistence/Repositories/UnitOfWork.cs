@@ -30,7 +30,8 @@ public sealed class UnitOfWork : IUnitOfWork
         IProformRepository proforms,
         IPasswordResetTokenRepository passwordResetTokens,
         ICompanySettingsRepository companySettings,
-        IProformShareTokenRepository proformShareTokens)
+        IProformShareTokenRepository proformShareTokens,
+        IStoredFileRepository storedFiles)
     {
         _context = context;
         Companies = companies;
@@ -41,6 +42,7 @@ public sealed class UnitOfWork : IUnitOfWork
         Proforms = proforms;
         ProformShareTokens = proformShareTokens;
         CompanySettings = companySettings;
+        StoredFiles = storedFiles;
     }
 
     /// <inheritdoc />
@@ -66,6 +68,9 @@ public sealed class UnitOfWork : IUnitOfWork
 
     // <inheritdoc />
     public ICompanySettingsRepository CompanySettings { get; }
+
+    // <inheritdoc />
+    public IStoredFileRepository StoredFiles { get; }
 
     /// <inheritdoc />
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
