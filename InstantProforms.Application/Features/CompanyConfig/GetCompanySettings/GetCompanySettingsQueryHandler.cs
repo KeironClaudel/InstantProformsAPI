@@ -51,6 +51,7 @@ public sealed class GetCompanySettingsQueryHandler
             settings.Address,
             settings.TermsAndConditions,
             settings.LogoFileName,
+            null,
             settings.PrimaryColor,
             settings.SecondaryColor,
             settings.AccentColor,

@@ -6,6 +6,7 @@ using InstantProforms.Application.DependencyInjection;
 using InstantProforms.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using System.Globalization;
@@ -130,6 +131,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseHttpsRedirection();
+
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = ""
+});
 
 app.UseRouting();
 app.UseRateLimiter();

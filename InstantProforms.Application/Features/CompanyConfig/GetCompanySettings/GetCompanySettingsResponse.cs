@@ -12,6 +12,7 @@ public sealed record GetCompanySettingsResponse(
     string? Address,
     string? TermsAndConditions,
     string? LogoFileName,
+    string? LogoUrl,
     string? PrimaryColor,
     string? SecondaryColor,
     string? AccentColor,

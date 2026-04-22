@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using InstantProforms.Api.Contracts.CompanySettings;
 using InstantProforms.Application.Features.CompanyConfig.GetCompanySettings;
 using InstantProforms.Application.Features.CompanyConfig.UpsertCompanySettings;
+using InstantProforms.Api.Common.Helpers;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -35,7 +36,18 @@ public sealed class CompanySettingsController : ControllerBase
     public async Task<ActionResult<GetCompanySettingsResponse>> Get(CancellationToken cancellationToken)
     {
         var response = await _sender.Send(new GetCompanySettingsQuery(), cancellationToken);
-        return Ok(response);
+
+        var logoUrl = FileUrlHelper.BuildAbsoluteUrl(
+            response.LogoFileName,
+            Request.Scheme,
+            Request.Host);
+
+        var result = response with
+        {
+            LogoUrl = logoUrl
+        };
+
+        return Ok(result);
     }
 
     /// <summary>
