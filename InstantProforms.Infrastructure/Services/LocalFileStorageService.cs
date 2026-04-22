@@ -1,4 +1,5 @@
 ﻿using InstantProforms.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 
 namespace InstantProforms.Infrastructure.Services;
 
@@ -7,6 +8,17 @@ namespace InstantProforms.Infrastructure.Services;
 /// </summary>
 public sealed class LocalFileStorageService : IFileStorageService
 {
+    private readonly IWebHostEnvironment _environment;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalFileStorageService"/> class.
+    /// </summary>
+    /// <param name="environment">The web host environment.</param>
+    public LocalFileStorageService(IWebHostEnvironment environment)
+    {
+        _environment = environment;
+    }
+
     /// <inheritdoc />
     public async Task<FileStorageSaveResult> SaveCompanyLogoAsync(
         Guid companyId,
@@ -18,7 +30,7 @@ public sealed class LocalFileStorageService : IFileStorageService
         var storedFileName = $"{Guid.NewGuid()}{extension}";
 
         var rootPath = Path.Combine(
-            AppContext.BaseDirectory,
+            _environment.ContentRootPath,
             "wwwroot",
             "uploads",
             "company-logos",
@@ -40,7 +52,10 @@ public sealed class LocalFileStorageService : IFileStorageService
     /// <inheritdoc />
     public Task DeleteAsync(string relativePath)
     {
-        var fullPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
+        var fullPath = Path.Combine(
+            _environment.ContentRootPath,
+            "wwwroot",
+            relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
 
         if (File.Exists(fullPath))
         {
