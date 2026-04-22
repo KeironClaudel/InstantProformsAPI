@@ -379,9 +379,67 @@ public sealed class ProformPdfDocument : IDocument
             return Array.Empty<string>();
         }
 
-        return _data.TermsAndConditions
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(x => x.Replace("\r", string.Empty))
+        var normalized = _data.TermsAndConditions
+            .Replace("\\n", "\n")
+            .Replace("\r", string.Empty)
+            .Trim();
+
+        // Preferred format:
+        // one bullet per paragraph, separated by a blank line
+        if (normalized.Contains("\n\n"))
+        {
+            return normalized
+                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(NormalizeConditionText)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+        }
+
+        // Secondary format:
+        // line-based content. If all lines look like continuation lines, merge them.
+        if (normalized.Contains('\n'))
+        {
+            var lines = normalized
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            // Heuristic:
+            // if every line ends with punctuation, treat each line as a bullet
+            var everyLineLooksIndependent = lines.All(x =>
+                x.EndsWith('.') || x.EndsWith(';') || x.EndsWith(':'));
+
+            if (everyLineLooksIndependent)
+            {
+                return lines
+                    .Select(NormalizeConditionText)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .ToList();
+            }
+
+            // Otherwise, treat the full text as paragraphs with internal wraps
+            return new List<string>
+        {
+            NormalizeConditionText(string.Join(" ", lines))
+        };
+        }
+
+        // Fallback:
+        // split by sentence endings followed by a space
+        var sentenceBased = System.Text.RegularExpressions.Regex
+            .Split(normalized, @"(?<=\.)\s+(?=[A-ZÁÉÍÓÚÑ])")
+            .Select(NormalizeConditionText)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToList();
+
+        return sentenceBased.Count > 0
+            ? sentenceBased
+            : new List<string> { NormalizeConditionText(normalized) };
+    }
+
+    private static string NormalizeConditionText(string value)
+    {
+        return System.Text.RegularExpressions.Regex
+            .Replace(value, @"\s+", " ")
+            .Trim();
     }
 }

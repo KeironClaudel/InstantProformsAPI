@@ -40,13 +40,21 @@ public sealed class CreateProformCommandHandler
 
         var companyId = _currentUserService.CompanyId.Value;
 
-        var latestproforms = await _unitOfWork.Proforms
+        var settings = await _unitOfWork.CompanySettings
+            .GetByCompanyIdAsync(companyId, cancellationToken);
+
+        if (settings is null)
+        {
+            throw new InvalidOperationException("Company settings were not found.");
+        }
+
+        var latestProform = await _unitOfWork.Proforms
             .GetLatestByCompanyAsync(companyId, cancellationToken);
 
-        var nextNumber = GenerateNextNumber(latestproforms?.Number);
+        var nextNumber = GenerateNextNumber(latestProform?.Number, settings.ProformPrefix);
 
         var utcNow = DateTime.UtcNow;
-        var proformsId = Guid.NewGuid();
+        var proformId = Guid.NewGuid();
 
         var items = request.Items
             .Select((item, index) =>
@@ -56,7 +64,7 @@ public sealed class CreateProformCommandHandler
                 return new ProformItem
                 {
                     Id = Guid.NewGuid(),
-                    proformsId = proformsId,
+                    ProformId = proformId,
                     Description = item.Description,
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice,
@@ -70,9 +78,9 @@ public sealed class CreateProformCommandHandler
         var subtotal = items.Sum(x => x.Total);
         var total = subtotal;
 
-        var proforms = new Proform
+        var proform = new Proform
         {
-            Id = proformsId,
+            Id = proformId,
             CompanyId = companyId,
             Number = nextNumber,
             Status = ProformStatus.Draft,
@@ -87,33 +95,37 @@ public sealed class CreateProformCommandHandler
             Items = items
         };
 
-        await _unitOfWork.Proforms.AddAsync(proforms, cancellationToken);
+        await _unitOfWork.Proforms.AddAsync(proform, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new CreateProformResponse(
-            proforms.Id,
-            proforms.Number,
-            proforms.Status.ToString(),
-            proforms.Subtotal,
-            proforms.Total);
+            proform.Id,
+            proform.Number,
+            proform.Status.ToString(),
+            proform.Subtotal,
+            proform.Total);
     }
 
-    private static string GenerateNextNumber(string? latestNumber)
+    private static string GenerateNextNumber(string? latestNumber, string proformPrefix)
     {
-        const string prefix = "PRO-";
+        var normalizedPrefix = string.IsNullOrWhiteSpace(proformPrefix)
+            ? "PRO"
+            : proformPrefix.Trim().ToUpperInvariant();
 
-        if (string.IsNullOrWhiteSpace(latestNumber) || !latestNumber.StartsWith(prefix))
+        var prefixWithSeparator = $"{normalizedPrefix}-";
+
+        if (string.IsNullOrWhiteSpace(latestNumber) || !latestNumber.StartsWith(prefixWithSeparator, StringComparison.OrdinalIgnoreCase))
         {
-            return $"{prefix}000001";
+            return $"{prefixWithSeparator}000001";
         }
 
-        var numericPart = latestNumber[prefix.Length..];
+        var numericPart = latestNumber[prefixWithSeparator.Length..];
 
         if (!int.TryParse(numericPart, out var currentNumber))
         {
-            return $"{prefix}000001";
+            return $"{prefixWithSeparator}000001";
         }
 
-        return $"{prefix}{(currentNumber + 1):D6}";
+        return $"{prefixWithSeparator}{(currentNumber + 1):D6}";
     }
 }

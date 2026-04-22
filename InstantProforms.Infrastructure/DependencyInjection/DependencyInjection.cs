@@ -51,6 +51,7 @@ public static class DependencyInjection
         services.Configure<ProformShareSettings>(configuration.GetSection("ProformShareSettings"));
         services.AddScoped<IProformShareTokenRepository, ProformShareTokenRepository>();
         services.AddScoped<ICompanySettingsRepository, CompanySettingsRepository>();
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         return services;
     }

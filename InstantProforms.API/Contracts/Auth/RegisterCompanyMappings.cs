@@ -2,8 +2,16 @@
 
 namespace InstantProforms.Api.Contracts.Auth;
 
+/// <summary>
+/// Provides mappings for company registration contracts.
+/// </summary>
 public static class RegisterCompanyMappings
 {
+    /// <summary>
+    /// Converts an HTTP request into an application command.
+    /// </summary>
+    /// <param name="request">The HTTP request.</param>
+    /// <returns>The application command.</returns>
     public static RegisterCompanyCommand ToCommand(this RegisterCompanyRequest request)
     {
         return new RegisterCompanyCommand(
@@ -12,9 +20,19 @@ public static class RegisterCompanyMappings
             request.CompanyEmail,
             request.CompanyPhone,
             request.CompanyAddress,
+            request.CompanyWebsite,
+            request.DisplayName,
+            request.LegalName,
+            request.TermsAndConditions,
+            request.PrimaryColor,
+            request.SecondaryColor,
+            request.AccentColor,
+            request.ProformPrefix,
+            request.CurrencySymbol,
+            request.TaxLabel,
+            request.LogoFile,
             request.OwnerFullName,
             request.OwnerEmail,
-            request.CompanyWebsite,
             request.Password);
     }
 }

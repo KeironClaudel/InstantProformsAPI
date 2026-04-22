@@ -38,7 +38,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("register-company")]
     [ProducesResponseType(typeof(RegisterCompanyResponse), StatusCodes.Status201Created)]
     public async Task<ActionResult<RegisterCompanyResponse>> RegisterCompany(
-        [FromBody] RegisterCompanyRequest request,
+        [FromForm] RegisterCompanyRequest request,
         CancellationToken cancellationToken)
     {
         var response = await _sender.Send(request.ToCommand(), cancellationToken);

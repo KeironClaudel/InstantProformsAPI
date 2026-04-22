@@ -10,7 +10,7 @@ public sealed class ProformItem : BaseAuditableEntity
     /// <summary>
     /// Gets or sets the proforms identifier.
     /// </summary>
-    public Guid proformsId { get; set; }
+    public Guid ProformId { get; set; }
 
     /// <summary>
     /// Gets or sets the item description.

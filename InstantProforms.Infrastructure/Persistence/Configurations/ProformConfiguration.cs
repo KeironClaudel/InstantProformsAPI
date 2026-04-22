@@ -52,7 +52,7 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
 
         builder.HasMany(x => x.Items)
             .WithOne(x => x.proforms)
-            .HasForeignKey(x => x.proformsId)
+            .HasForeignKey(x => x.ProformId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -14,18 +14,19 @@ public sealed class RegisterCompanyCommandHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IFileStorageService _fileStorageService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RegisterCompanyCommandHandler"/> class.
     /// </summary>
-    /// <param name="unitOfWork">The unit of work.</param>
-    /// <param name="passwordHasher">The password hasher.</param>
     public RegisterCompanyCommandHandler(
         IUnitOfWork unitOfWork,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IFileStorageService fileStorageService)
     {
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
+        _fileStorageService = fileStorageService;
     }
 
     /// <inheritdoc />
@@ -58,10 +59,11 @@ public sealed class RegisterCompanyCommandHandler
         }
 
         var utcNow = DateTime.UtcNow;
+        var companyId = Guid.NewGuid();
 
         var company = new Company
         {
-            Id = Guid.NewGuid(),
+            Id = companyId,
             Name = request.CompanyName,
             Slug = request.CompanySlug,
             Email = request.CompanyEmail,
@@ -71,36 +73,41 @@ public sealed class RegisterCompanyCommandHandler
             CreatedAtUtc = utcNow
         };
 
+        string logoFileName;
+        await using (var logoStream = request.LogoFile.OpenReadStream())
+        {
+            logoFileName = await _fileStorageService.SaveCompanyLogoAsync(
+                companyId,
+                request.LogoFile.FileName,
+                logoStream,
+                cancellationToken);
+        }
+
         var companySettings = new CompanySettings
         {
             Id = Guid.NewGuid(),
-            CompanyId = company.Id,
-            DisplayName = company.Name,
+            CompanyId = companyId,
+            DisplayName = request.DisplayName,
+            LegalName = request.LegalName,
             Website = request.CompanyWebsite,
-            Phone = company.Phone,
-            Email = company.Email,
-            Address = company.Address,
-            TermsAndConditions =
-                        "La garantía no cubre daños por manipulación indebida.\n" +
-                        "Toda falla debe ser reportada directamente a la empresa antes de su reparación o intervención.\n" +
-                        "Las reparaciones por terceros sin previa aceptación por la empresa anulan la garantía.\n" +
-                        "La empresa no responde por uso indebido o conexiones no autorizadas.",
-            LogoFileName = null,
-            PrimaryColor = "#1B2D5A",
-            SecondaryColor = "#e6c7f0",
-            AccentColor = "#dbe2ff",
-            ProformPrefix = "PRO",
-            CurrencySymbol = "₡",
-            TaxLabel = "Total",
+            Phone = request.CompanyPhone,
+            Email = request.CompanyEmail,
+            Address = request.CompanyAddress,
+            TermsAndConditions = request.TermsAndConditions,
+            LogoFileName = logoFileName,
+            PrimaryColor = request.PrimaryColor,
+            SecondaryColor = request.SecondaryColor,
+            AccentColor = request.AccentColor,
+            ProformPrefix = request.ProformPrefix,
+            CurrencySymbol = request.CurrencySymbol,
+            TaxLabel = request.TaxLabel,
             CreatedAtUtc = utcNow
         };
-
-        await _unitOfWork.CompanySettings.AddAsync(companySettings, cancellationToken);
 
         var ownerUser = new User
         {
             Id = Guid.NewGuid(),
-            CompanyId = company.Id,
+            CompanyId = companyId,
             RoleId = ownerRole.Id,
             FullName = request.OwnerFullName,
             Email = request.OwnerEmail,
@@ -110,6 +117,7 @@ public sealed class RegisterCompanyCommandHandler
         };
 
         await _unitOfWork.Companies.AddAsync(company, cancellationToken);
+        await _unitOfWork.CompanySettings.AddAsync(companySettings, cancellationToken);
         await _unitOfWork.Users.AddAsync(ownerUser, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
