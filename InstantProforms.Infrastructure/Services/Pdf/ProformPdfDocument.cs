@@ -1,7 +1,8 @@
-﻿using QuestPDF.Fluent;
+﻿using InstantProforms.Application.Features.Proforms.Common;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using InstantProforms.Application.Features.Proforms.GetProformById;
+using System.Globalization;
 
 namespace InstantProforms.Infrastructure.Services.Pdf;
 
@@ -10,14 +11,13 @@ namespace InstantProforms.Infrastructure.Services.Pdf;
 /// </summary>
 public sealed class ProformPdfDocument : IDocument
 {
-    private readonly GetProformByIdResponse _data;
     private readonly string _logoPath;
+    private readonly ProformPdfModel _data;
 
-    private const string PastelPink = "#e6c7f0";
-    private const string PastelBlue = "#dbe2ff";
-    private const string PastelPurple = "#decbf2";
-    private const string PastelOverlay = "#eacbf2";
-    private const string DarkText = "#1B2D5A";
+    private string PrimaryColor => string.IsNullOrWhiteSpace(_data.PrimaryColor) ? "#1B2D5A" : _data.PrimaryColor;
+    private string SecondaryColor => string.IsNullOrWhiteSpace(_data.SecondaryColor) ? "#e6c7f0" : _data.SecondaryColor;
+    private string AccentColor => string.IsNullOrWhiteSpace(_data.AccentColor) ? "#dbe2ff" : _data.AccentColor;
+
     private const string BlackText = "#111111";
     private const string DividerColor = "#222222";
 
@@ -26,7 +26,7 @@ public sealed class ProformPdfDocument : IDocument
     /// </summary>
     /// <param name="data">The proform data.</param>
     /// <param name="logoPath">The company logo path.</param>
-    public ProformPdfDocument(GetProformByIdResponse data, string logoPath)
+    public ProformPdfDocument(ProformPdfModel data, string logoPath)
     {
         _data = data;
         _logoPath = logoPath;
@@ -76,6 +76,10 @@ public sealed class ProformPdfDocument : IDocument
 
     private void ComposeHeader(IContainer container)
     {
+        var phoneIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Icons", "phone.png");
+        var globeIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Icons", "globe.png");
+        var locationIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Icons", "location.png");
+
         container.Row(row =>
         {
             row.RelativeItem();
@@ -86,9 +90,63 @@ public sealed class ProformPdfDocument : IDocument
                     .AlignMiddle()
                     .Column(column =>
                     {
-                        column.Item().AlignRight().Text("8544-0393").FontSize(12);
-                        column.Item().AlignRight().Text("www.ecotechcr.net").FontSize(12);
-                        column.Item().AlignRight().Text("San José, Curridabat").FontSize(12);
+                        if (!string.IsNullOrWhiteSpace(_data.Phone))
+                        {
+                            column.Item().AlignRight().Row(iconRow =>
+                            {
+                                iconRow.RelativeItem().AlignRight().Text(_data.Phone).FontSize(12);
+                                iconRow.ConstantItem(18)
+                                    .PaddingLeft(4)      
+                                    .Height(14)
+                                    .AlignMiddle()
+                                    .AlignRight()
+                                    .Element(icon =>
+                                    {
+                                        if (File.Exists(phoneIconPath))
+                                            icon.Image(phoneIconPath).FitArea();
+                                    });
+                            });
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(_data.Website))
+                        {
+                            column.Item().AlignRight().Row(iconRow =>
+                            {
+                                iconRow.RelativeItem().AlignRight().Text(_data.Website).FontSize(12);
+                                iconRow.ConstantItem(18)
+                                    .PaddingLeft(4)     
+                                    .Height(14)
+                                    .AlignMiddle()
+                                    .AlignRight()
+                                    .Element(icon =>
+                                    {
+                                        if (File.Exists(globeIconPath))
+                                            icon.Image(globeIconPath).FitArea();
+                                    });
+                            });
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(_data.Address))
+                        {
+                            column.Item().AlignRight().Row(iconRow =>
+                            {
+                                iconRow.RelativeItem()
+                                    .AlignRight()
+                                    .Text(_data.Address)
+                                    .FontSize(12);
+
+                                iconRow.ConstantItem(20)
+                                    .PaddingLeft(6)
+                                    .Height(14)
+                                    .AlignMiddle()
+                                    .AlignRight()
+                                    .Element(icon =>
+                                    {
+                                        if (File.Exists(locationIconPath))
+                                            icon.Image(locationIconPath).FitArea();
+                                    });
+                            });
+                        }
                     });
 
                 innerRow.ConstantItem(16)
@@ -124,7 +182,7 @@ public sealed class ProformPdfDocument : IDocument
         {
             column.Item().Text(text =>
             {
-                text.Span(_data.IssuedAtUtc.ToString("dd MMMM yyyy").ToUpperInvariant())
+                text.Span(_data.IssuedAtUtc.ToString("dd MMMM yyyy", new CultureInfo("es-ES")).ToUpperInvariant())
                     .FontSize(10)
                     .SemiBold();
             });
@@ -136,7 +194,7 @@ public sealed class ProformPdfDocument : IDocument
                     left.Item().Text(text =>
                     {
                         text.DefaultTextStyle(x => x.FontSize(11));
-                        text.Span("CLIENTE: ").ExtraBold();
+                        text.Span("CLIENTE: ").ExtraBold(); ;
                         text.Span(_data.ClientName.ToUpperInvariant());
                     });
 
@@ -150,12 +208,12 @@ public sealed class ProformPdfDocument : IDocument
                         });
                     }
 
-                    if (!string.IsNullOrWhiteSpace(_data.ClientEmail))
+                    if (!string.IsNullOrWhiteSpace(_data.Notes))
                     {
                         left.Item().PaddingTop(2).Text(text =>
                         {
                             text.DefaultTextStyle(x => x.FontSize(11));
-                            text.Span(_data.ClientEmail!.ToUpperInvariant());
+                            text.Span(_data.Notes!.ToUpperInvariant());
                         });
                     }
                 });
@@ -166,7 +224,7 @@ public sealed class ProformPdfDocument : IDocument
                     .Text(text =>
                     {
                         text.DefaultTextStyle(x => x.FontSize(11));
-                        text.Span("COTIZACIÓN: ").ExtraBold();
+                        text.Span("COTIZACIÓN: ").ExtraBold().FontColor(PrimaryColor);
                         text.Span(_data.Number).Bold();
                     });
             });
@@ -252,7 +310,7 @@ public sealed class ProformPdfDocument : IDocument
                     {
                         r.RelativeItem()
                             .AlignRight()
-                            .Text("Total IVAI")
+                            .Text(_data.TaxLabel)
                             .Italic()
                             .ExtraBold()
                             .FontSize(14);
@@ -270,53 +328,60 @@ public sealed class ProformPdfDocument : IDocument
     }
 
     private void ComposeConditionsSection(IContainer container)
-{
-    var conditions = GetFixedConditions();
-
-    container.Row(row =>
     {
-        row.ConstantItem(380).Column(column =>
+        var conditions = GetConditions();
+
+        if (conditions.Count == 0)
         {
-            column.Item().Text("CONDICIONES")
-                .FontColor(DarkText)
-                .FontSize(16)
-                .ExtraBold();
+            return;
+        }
 
-            column.Item().PaddingTop(8).Column(list =>
+        container.Row(row =>
+        {
+            row.ConstantItem(380).Column(column =>
             {
-                foreach (var condition in conditions)
-                {
-                    list.Item().PaddingBottom(3).Row(itemRow =>
-                    {
-                        itemRow.ConstantItem(12)
-                            .Text("•")
-                            .FontColor(DarkText)
-                            .FontSize(12);
+                column.Item().Text("CONDICIONES")
+                    .FontColor(PrimaryColor)
+                    .FontSize(16)
+                    .ExtraBold();
 
-                        itemRow.RelativeItem()
-                            .Text(condition)
-                            .FontSize(9.5f)
-                            .LineHeight(1.2f);
-                    });
-                }
+                column.Item().PaddingTop(8).Column(list =>
+                {
+                    foreach (var condition in conditions)
+                    {
+                        list.Item().PaddingBottom(3).Row(itemRow =>
+                        {
+                            itemRow.ConstantItem(12)
+                                .Text("•")
+                                .FontColor(PrimaryColor)
+                                .FontSize(12);
+
+                            itemRow.RelativeItem()
+                                .Text(condition)
+                                .FontSize(9.5f)
+                                .LineHeight(1.2f);
+                        });
+                    }
+                });
             });
         });
-    });
-}
-
-    private static string FormatCurrency(decimal amount)
-    {
-        return $"₡{amount:N0}";
     }
 
-    private static IReadOnlyList<string> GetFixedConditions()
+    private string FormatCurrency(decimal amount)
     {
-        return new List<string>
+        return $"{_data.CurrencySymbol}{amount:N0}";
+    }
+
+    private IReadOnlyList<string> GetConditions()
+    {
+        if (string.IsNullOrWhiteSpace(_data.TermsAndConditions))
         {
-            "La garantía no cubre daños, fallas o modificaciones ocasionadas por manipulación,\r\nintervención o alteraciones realizadas por terceros ajenos a Ecotech CR.",
-            "Cualquier falla, anomalía o inconveniente relacionado con la instalación eléctrica deberá\r\nser reportada directamente a Ecotech CR, quien realizará una valoración técnica previa\r\nantes de cualquier reparación o intervención.",
-            "En caso de que el cliente autorice reparaciones o manipulaciones por parte de terceros\r\nsin previa valoración de Ecotech CR, la garantía quedará automáticamente anulada.",
-            "Ecotech CR no se responsabiliza por daños ocasionados por sobrecargas, equipos\r\ndefectuosos, conexiones no autorizadas o uso indebido de la instalación."
-        };
+            return Array.Empty<string>();
+        }
+
+        return _data.TermsAndConditions
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x => x.Replace("\r", string.Empty))
+            .ToList();
     }
 }

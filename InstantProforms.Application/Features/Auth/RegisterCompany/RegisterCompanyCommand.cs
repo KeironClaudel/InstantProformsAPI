@@ -10,4 +10,5 @@ public sealed record RegisterCompanyCommand(
     string? CompanyAddress,
     string OwnerFullName,
     string OwnerEmail,
+    string? CompanyWebsite,
     string Password) : IRequest<RegisterCompanyResponse>;

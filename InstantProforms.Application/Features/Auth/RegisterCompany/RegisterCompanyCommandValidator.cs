@@ -25,6 +25,10 @@ public sealed class RegisterCompanyCommandValidator : AbstractValidator<Register
             .NotEmpty()
             .MaximumLength(150);
 
+        RuleFor(x => x.CompanyWebsite)
+            .MaximumLength(200)
+            .WithMessage("Company website must be a valid URL.");
+
         RuleFor(x => x.OwnerEmail)
             .NotEmpty()
             .EmailAddress()

@@ -76,15 +76,15 @@ public sealed class RegisterCompanyCommandHandler
             Id = Guid.NewGuid(),
             CompanyId = company.Id,
             DisplayName = company.Name,
-            Website = null,
+            Website = request.CompanyWebsite,
             Phone = company.Phone,
             Email = company.Email,
             Address = company.Address,
             TermsAndConditions =
-                        "The warranty does not cover damage, failures, or modifications caused by improper handling, intervention, or alterations performed by third parties unrelated to the company.\n" +
-                        "Any issue related to the installation must be reported directly to the company before any repair or intervention.\n" +
-                        "If the client authorizes repairs by third parties without prior assessment, the granted warranty will be automatically voided.\n" +
-                        "The company is not responsible for damage caused by overloads, defective equipment, unauthorized connections, or improper use.",
+                        "La garantía no cubre daños por manipulación indebida.\n" +
+                        "Toda falla debe ser reportada directamente a la empresa antes de su reparación o intervención.\n" +
+                        "Las reparaciones por terceros sin previa aceptación por la empresa anulan la garantía.\n" +
+                        "La empresa no responde por uso indebido o conexiones no autorizadas.",
             LogoFileName = null,
             PrimaryColor = "#1B2D5A",
             SecondaryColor = "#e6c7f0",

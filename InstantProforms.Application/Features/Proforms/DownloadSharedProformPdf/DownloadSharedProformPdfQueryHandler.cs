@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
-using InstantProforms.Application.Features.Proforms.GetProformById;
+using InstantProforms.Application.Features.Proforms.Common;
 
 namespace InstantProforms.Application.Features.Proforms.DownloadSharedProformPdf;
 
@@ -48,33 +48,20 @@ public sealed class DownloadSharedProformPdfQueryHandler
             shareToken.UsedAtUtc = DateTime.UtcNow;
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
         var proform = shareToken.Proform;
 
-        var response = new GetProformByIdResponse(
-            proform.Id,
-            proform.Number,
-            proform.Status.ToString(),
-            proform.ClientName,
-            proform.ClientEmail,
-            proform.ClientPhone,
-            proform.IssuedAtUtc,
-            proform.Notes,
-            proform.Subtotal,
-            proform.Total,
-            proform.Items
-                .OrderBy(x => x.SortOrder)
-                .Select(x => new GetProformByIdItemResponse(
-                    x.Id,
-                    x.Description,
-                    x.Quantity,
-                    x.UnitPrice,
-                    x.Total,
-                    x.SortOrder))
-                .ToList());
+        var settings = await _unitOfWork.CompanySettings
+            .GetByCompanyIdAsync(proform.CompanyId, cancellationToken);
 
-        var content = _proformPdfService.Generate(response);
+        if (settings is null)
+        {
+            throw new InvalidOperationException("Company settings were not found.");
+        }
+
+        var model = ProformPdfModelFactory.Create(proform, settings);
+        var content = _proformPdfService.Generate(model);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new DownloadSharedProformPdfResponse(
             content,

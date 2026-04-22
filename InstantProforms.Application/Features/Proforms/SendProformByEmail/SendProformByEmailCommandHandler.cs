@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
-using InstantProforms.Application.Features.Proforms.GetProformById;
+using InstantProforms.Application.Features.Proforms.Common;
 using InstantProforms.Domain.Enums;
 
 namespace InstantProforms.Application.Features.Proforms.SendProformByEmail;
@@ -13,7 +13,6 @@ public sealed class SendProformByEmailCommandHandler
     : IRequestHandler<SendProformByEmailCommand, SendProformByEmailResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ISender _sender;
     private readonly IEmailService _emailService;
     private readonly IProformPdfService _proformPdfService;
     private readonly ICurrentUserService _currentUserService;
@@ -23,13 +22,11 @@ public sealed class SendProformByEmailCommandHandler
     /// </summary>
     public SendProformByEmailCommandHandler(
         IUnitOfWork unitOfWork,
-        ISender sender,
         IEmailService emailService,
         IProformPdfService proformPdfService,
         ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
-        _sender = sender;
         _emailService = emailService;
         _proformPdfService = proformPdfService;
         _currentUserService = currentUserService;
@@ -45,41 +42,48 @@ public sealed class SendProformByEmailCommandHandler
             throw new InvalidOperationException("Authenticated company context was not found.");
         }
 
+        var companyId = _currentUserService.CompanyId.Value;
+
         var proform = await _unitOfWork.Proforms
-            .GetByIdAsync(request.ProformId, _currentUserService.CompanyId.Value, cancellationToken);
+            .GetByIdWithItemsAsync(request.ProformId, companyId, cancellationToken);
 
         if (proform is null)
         {
             throw new InvalidOperationException("Proform was not found.");
         }
 
-        var proformDetails = await _sender.Send(
-            new GetProformByIdQuery(request.ProformId),
-            cancellationToken);
+        var settings = await _unitOfWork.CompanySettings
+            .GetByCompanyIdAsync(companyId, cancellationToken);
 
-        var pdfContent = _proformPdfService.Generate(proformDetails);
+        if (settings is null)
+        {
+            throw new InvalidOperationException("Company settings were not found.");
+        }
+
+        var pdfModel = ProformPdfModelFactory.Create(proform, settings);
+        var pdfContent = _proformPdfService.Generate(pdfModel);
 
         var subject = string.IsNullOrWhiteSpace(request.Subject)
-            ? $"Proform {proformDetails.Number}"
+            ? $"Proform {proform.Number}"
             : request.Subject.Trim();
 
         var body = string.IsNullOrWhiteSpace(request.Message)
             ? $"""
                <p>Hello,</p>
-               <p>Please find attached proform <strong>{proformDetails.Number}</strong>.</p>
+               <p>Please find attached proform <strong>{proform.Number}</strong>.</p>
                <p>Thank you.</p>
                """
             : $"""
                <p>{System.Net.WebUtility.HtmlEncode(request.Message).Replace("\n", "<br />")}</p>
                <hr />
-               <p>Attached proform: <strong>{proformDetails.Number}</strong></p>
+               <p>Attached proform: <strong>{proform.Number}</strong></p>
                """;
 
         await _emailService.SendAsync(
             request.ToEmail,
             subject,
             body,
-            $"{proformDetails.Number}.pdf",
+            $"{proform.Number}.pdf",
             pdfContent,
             cancellationToken);
 

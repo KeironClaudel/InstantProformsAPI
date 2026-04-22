@@ -8,11 +8,23 @@
 
   <ItemGroup>
     <None Remove="Assets\Background.png" />
+    <None Remove="Assets\Icons\globe.png" />
+    <None Remove="Assets\Icons\location.png" />
+    <None Remove="Assets\Icons\phone.png" />
     <None Remove="Assets\Logo2020.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\Background.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\globe.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\location.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Icons\phone.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\Logo2020.png">

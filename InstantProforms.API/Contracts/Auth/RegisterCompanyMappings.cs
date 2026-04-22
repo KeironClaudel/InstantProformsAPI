@@ -14,6 +14,7 @@ public static class RegisterCompanyMappings
             request.CompanyAddress,
             request.OwnerFullName,
             request.OwnerEmail,
+            request.CompanyWebsite,
             request.Password);
     }
 }

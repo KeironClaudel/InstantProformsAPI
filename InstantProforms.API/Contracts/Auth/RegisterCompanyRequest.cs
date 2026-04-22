@@ -8,4 +8,5 @@ public sealed record RegisterCompanyRequest(
     string? CompanyAddress,
     string OwnerFullName,
     string OwnerEmail,
+    string? CompanyWebsite,
     string Password);

@@ -1,4 +1,4 @@
-﻿using InstantProforms.Application.Features.Proforms.GetProformById;
+﻿using InstantProforms.Application.Features.Proforms.Common;
 
 namespace InstantProforms.Application.Common.Interfaces;
 
@@ -8,9 +8,9 @@ namespace InstantProforms.Application.Common.Interfaces;
 public interface IProformPdfService
 {
     /// <summary>
-    /// Generates a PDF document for the specified proform.
+    /// Generates a PDF document for the specified proform model.
     /// </summary>
-    /// <param name="proform">The proform data.</param>
+    /// <param name="model">The proform PDF model.</param>
     /// <returns>The generated PDF as a byte array.</returns>
-    byte[] Generate(GetProformByIdResponse proform);
+    byte[] Generate(ProformPdfModel model);
 }
