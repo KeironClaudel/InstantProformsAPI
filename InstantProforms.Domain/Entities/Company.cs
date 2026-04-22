@@ -20,7 +20,7 @@ public sealed class Company : BaseAuditableEntity
     /// <summary>
     /// Gets or sets the contact email.
     /// </summary>
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the contact phone.

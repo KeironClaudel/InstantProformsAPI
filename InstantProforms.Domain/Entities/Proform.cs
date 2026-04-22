@@ -64,9 +64,14 @@ public sealed class Proform : BaseAuditableEntity
     public Company Company { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the items in the proforms.
+    /// Gets or sets the tax percentage applied to the proform.
     /// </summary>
+    public decimal TaxPercentage { get; set; }
 
+    /// <summary>
+    /// Gets or sets the tax amount applied to the proform.
+    /// </summary>
+    public decimal TaxAmount { get; set; }
     /// <summary>
     /// Gets or sets the share tokens issued for this proform.
     /// </summary>

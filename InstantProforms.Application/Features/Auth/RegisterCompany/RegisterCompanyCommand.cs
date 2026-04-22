@@ -22,6 +22,7 @@ public sealed record RegisterCompanyCommand(
     string ProformPrefix,
     string CurrencySymbol,
     string TaxLabel,
+    decimal TaxPercentage,
     IFormFile LogoFile,
     string OwnerFullName,
     string OwnerEmail,

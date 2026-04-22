@@ -83,13 +83,14 @@ public sealed class CompanySettings : BaseAuditableEntity
     public string TaxLabel { get; set; } = "Total";
 
     /// <summary>
-    /// Gets or sets the related company.
-    /// </summary>
-    
-    /// <summary>
     /// Gets or sets the stored file identifier for the company logo.
     /// </summary>
     public Guid? LogoStoredFileId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the tax percentage (e.g. 13 for 13%).
+    /// </summary>
+    public decimal TaxPercentage { get; set; }
 
     /// <summary>
     /// Gets or sets the stored file metadata for the company logo.

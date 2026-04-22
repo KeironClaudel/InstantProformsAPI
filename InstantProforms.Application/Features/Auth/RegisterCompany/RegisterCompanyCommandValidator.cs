@@ -28,6 +28,10 @@ public sealed class RegisterCompanyCommandValidator : AbstractValidator<Register
         RuleFor(x => x.CompanyPhone)
             .MaximumLength(50);
 
+        RuleFor(x => x.TaxPercentage)
+            .GreaterThanOrEqualTo(0)
+            .LessThanOrEqualTo(100);
+
         RuleFor(x => x.CompanyAddress)
             .MaximumLength(300);
 

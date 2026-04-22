@@ -51,6 +51,9 @@ public sealed class CompanySettingsConfiguration : IEntityTypeConfiguration<Comp
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(x => x.TaxPercentage)
+            .HasPrecision(5, 2);
+
         builder.Property(x => x.CurrencySymbol)
             .HasMaxLength(10)
             .IsRequired();

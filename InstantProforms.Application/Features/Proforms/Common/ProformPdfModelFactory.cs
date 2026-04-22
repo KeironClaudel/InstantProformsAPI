@@ -31,6 +31,8 @@ public static class ProformPdfModelFactory
             ProformId: proform.Id,
             Number: proform.Number,
             Status: proform.Status.ToString(),
+            TaxPercentage: proform.TaxPercentage,
+            TaxAmount: proform.TaxAmount,
             ClientName: proform.ClientName,
             ClientEmail: proform.ClientEmail,
             ClientPhone: proform.ClientPhone,

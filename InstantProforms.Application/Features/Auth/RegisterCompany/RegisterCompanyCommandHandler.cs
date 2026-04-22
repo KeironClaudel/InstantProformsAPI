@@ -115,6 +115,7 @@ public sealed class RegisterCompanyCommandHandler
             AccentColor = request.AccentColor,
             ProformPrefix = request.ProformPrefix,
             CurrencySymbol = request.CurrencySymbol,
+            TaxPercentage = request.TaxPercentage,
             TaxLabel = request.TaxLabel,
             CreatedAtUtc = utcNow
         };

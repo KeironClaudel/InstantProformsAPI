@@ -43,25 +43,27 @@ public sealed class GetProformByIdQueryHandler
         }
 
         return new GetProformByIdResponse(
-        proform.Id,
-        proform.Number,
-        proform.Status.ToString(),
-        proform.ClientName,
-        proform.ClientEmail,
-        proform.ClientPhone,
-        proform.IssuedAtUtc,
-        proform.Notes,
-        proform.Subtotal,
-        proform.Total,
-        proform.Items
-            .OrderBy(x => x.SortOrder)
-            .Select(x => new GetProformByIdItemResponse(
-                x.Id,
-                x.Description,
-                x.Quantity,
-                x.UnitPrice,
-                x.Total,
-                x.SortOrder))
-            .ToList());
+                proform.Id,
+                proform.Number,
+                proform.Status.ToString(),
+                proform.ClientName,
+                proform.ClientEmail,
+                proform.ClientPhone,
+                proform.IssuedAtUtc,
+                proform.Notes,
+                proform.Subtotal,
+                proform.TaxPercentage,
+                proform.TaxAmount,
+                proform.Total,
+                proform.Items
+                    .OrderBy(x => x.SortOrder)
+                    .Select(x => new GetProformByIdItemResponse(
+                        x.Id,
+                        x.Description,
+                        x.Quantity,
+                        x.UnitPrice,
+                        x.Total,
+                        x.SortOrder))
+                    .ToList());
     }
 }

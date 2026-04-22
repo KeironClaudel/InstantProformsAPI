@@ -25,6 +25,7 @@ public static class UpsertCompanySettingsMappings
             request.LogoFileName,
             request.PrimaryColor,
             request.SecondaryColor,
+            request.TaxPercentage,
             request.AccentColor,
             request.ProformPrefix,
             request.CurrencySymbol,

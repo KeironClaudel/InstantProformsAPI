@@ -16,6 +16,7 @@ public sealed record UpsertCompanySettingsCommand(
     string? LogoFileName,
     string? PrimaryColor,
     string? SecondaryColor,
+    decimal TaxPercentage,
     string? AccentColor,
     string ProformPrefix,
     string CurrencySymbol,

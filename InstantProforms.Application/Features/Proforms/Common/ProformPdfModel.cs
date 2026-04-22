@@ -22,6 +22,8 @@ public sealed record ProformPdfModel(
     string ClientName,
     string? ClientEmail,
     string? ClientPhone,
+    decimal TaxPercentage,
+    decimal TaxAmount,
     DateTime IssuedAtUtc,
     string? Notes,
     decimal Subtotal,

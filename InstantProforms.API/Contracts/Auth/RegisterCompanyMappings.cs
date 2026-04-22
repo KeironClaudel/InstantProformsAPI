@@ -30,6 +30,7 @@ public static class RegisterCompanyMappings
             request.ProformPrefix,
             request.CurrencySymbol,
             request.TaxLabel,
+            request.TaxPercentage,
             request.LogoFile,
             request.OwnerFullName,
             request.OwnerEmail,

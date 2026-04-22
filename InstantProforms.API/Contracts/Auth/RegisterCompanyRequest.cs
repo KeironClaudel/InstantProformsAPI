@@ -100,4 +100,9 @@ public sealed class RegisterCompanyRequest
     /// Gets or sets the password.
     /// </summary>
     public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the tax percentage.
+    /// </summary>
+    public decimal TaxPercentage { get; set; }
 }

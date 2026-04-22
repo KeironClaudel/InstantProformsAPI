@@ -17,5 +17,6 @@ public sealed record GetCompanySettingsResponse(
     string? SecondaryColor,
     string? AccentColor,
     string ProformPrefix,
+    decimal TaxPercentage,
     string CurrencySymbol,
     string TaxLabel);

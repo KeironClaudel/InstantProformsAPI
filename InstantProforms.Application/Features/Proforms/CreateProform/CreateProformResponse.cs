@@ -8,4 +8,6 @@ public sealed record CreateProformResponse(
     string Number,
     string Status,
     decimal Subtotal,
+    decimal TaxPercentage,
+    decimal TaxAmount,
     decimal Total);

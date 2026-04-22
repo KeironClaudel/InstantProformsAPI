@@ -49,7 +49,7 @@ public sealed class CreateProformCommandHandler
         }
 
         var latestProform = await _unitOfWork.Proforms
-            .GetLatestByCompanyAsync(companyId, cancellationToken);
+                                             .GetLatestByCompanyAsync(companyId, cancellationToken);
 
         var nextNumber = GenerateNextNumber(latestProform?.Number, settings.ProformPrefix);
 
@@ -76,7 +76,10 @@ public sealed class CreateProformCommandHandler
             .ToList();
 
         var subtotal = items.Sum(x => x.Total);
-        var total = subtotal;
+
+        var taxPercentage = settings.TaxPercentage;
+        var taxAmount = decimal.Round(subtotal * (taxPercentage / 100m), 2);
+        var total = subtotal + taxAmount;
 
         var proform = new Proform
         {
@@ -90,6 +93,8 @@ public sealed class CreateProformCommandHandler
             Notes = request.Notes,
             IssuedAtUtc = utcNow,
             Subtotal = subtotal,
+            TaxPercentage = taxPercentage,
+            TaxAmount = taxAmount,
             Total = total,
             CreatedAtUtc = utcNow,
             Items = items
@@ -99,11 +104,13 @@ public sealed class CreateProformCommandHandler
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new CreateProformResponse(
-            proform.Id,
-            proform.Number,
-            proform.Status.ToString(),
-            proform.Subtotal,
-            proform.Total);
+                proform.Id,
+                proform.Number,
+                proform.Status.ToString(),
+                proform.Subtotal,
+                proform.TaxPercentage,
+                proform.TaxAmount,
+                proform.Total);
     }
 
     private static string GenerateNextNumber(string? latestNumber, string proformPrefix)

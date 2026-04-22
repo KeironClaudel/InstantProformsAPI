@@ -42,6 +42,12 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
         builder.Property(x => x.Total)
             .HasPrecision(18, 2);
 
+        builder.Property(x => x.TaxPercentage)
+            .HasPrecision(5, 2);
+
+        builder.Property(x => x.TaxAmount)
+            .HasPrecision(18, 2);
+
         builder.HasIndex(x => new { x.CompanyId, x.Number })
             .IsUnique();
 

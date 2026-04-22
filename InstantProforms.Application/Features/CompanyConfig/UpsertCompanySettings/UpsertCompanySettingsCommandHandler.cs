@@ -65,6 +65,7 @@ public sealed class UpsertCompanySettingsCommandHandler
         settings.AccentColor = request.AccentColor;
         settings.ProformPrefix = request.ProformPrefix;
         settings.CurrencySymbol = request.CurrencySymbol;
+        settings.TaxPercentage = request.TaxPercentage;
         settings.TaxLabel = request.TaxLabel;
         settings.UpdatedAtUtc = DateTime.UtcNow;
 

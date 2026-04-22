@@ -56,6 +56,7 @@ public sealed class GetCompanySettingsQueryHandler
             settings.SecondaryColor,
             settings.AccentColor,
             settings.ProformPrefix,
+            settings.TaxPercentage,
             settings.CurrencySymbol,
             settings.TaxLabel);
     }

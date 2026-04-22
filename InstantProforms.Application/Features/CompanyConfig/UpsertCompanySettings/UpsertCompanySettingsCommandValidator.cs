@@ -45,6 +45,10 @@ public sealed class UpsertCompanySettingsCommandValidator : AbstractValidator<Up
         RuleFor(x => x.SecondaryColor)
             .MaximumLength(20);
 
+        RuleFor(x => x.TaxPercentage)
+            .GreaterThanOrEqualTo(0)
+            .LessThanOrEqualTo(100);
+
         RuleFor(x => x.AccentColor)
             .MaximumLength(20);
 

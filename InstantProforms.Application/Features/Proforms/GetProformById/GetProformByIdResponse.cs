@@ -13,6 +13,8 @@ public sealed record GetProformByIdResponse(
     DateTime IssuedAtUtc,
     string? Notes,
     decimal Subtotal,
+    decimal TaxPercentage,
+    decimal TaxAmount,
     decimal Total,
     IReadOnlyCollection<GetProformByIdItemResponse> Items);
 

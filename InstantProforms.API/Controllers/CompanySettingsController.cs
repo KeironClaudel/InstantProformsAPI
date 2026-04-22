@@ -1,10 +1,11 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using InstantProforms.Api.Common.Helpers;
 using InstantProforms.Api.Contracts.CompanySettings;
 using InstantProforms.Application.Features.CompanyConfig.GetCompanySettings;
+using InstantProforms.Application.Features.CompanyConfig.ReplaceLogo;
 using InstantProforms.Application.Features.CompanyConfig.UpsertCompanySettings;
-using InstantProforms.Api.Common.Helpers;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -64,5 +65,17 @@ public sealed class CompanySettingsController : ControllerBase
     {
         var response = await _sender.Send(request.ToCommand(), cancellationToken);
         return Ok(response);
+    }
+
+    [HttpPut("logo")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ReplaceLogo(
+    [FromForm] IFormFile logoFile,
+    CancellationToken cancellationToken)
+    {
+        await _sender.Send(new ReplaceCompanyLogoCommand(logoFile), cancellationToken);
+
+        return NoContent();
     }
 }
