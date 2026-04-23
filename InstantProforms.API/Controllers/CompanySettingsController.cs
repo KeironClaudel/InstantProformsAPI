@@ -71,10 +71,10 @@ public sealed class CompanySettingsController : ControllerBase
     [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> ReplaceLogo(
-    [FromForm] IFormFile logoFile,
+    [FromForm] ReplaceCompanyLogoRequest request,
     CancellationToken cancellationToken)
     {
-        await _sender.Send(new ReplaceCompanyLogoCommand(logoFile), cancellationToken);
+        await _sender.Send(new ReplaceCompanyLogoCommand(request.LogoFile), cancellationToken);
 
         return NoContent();
     }
