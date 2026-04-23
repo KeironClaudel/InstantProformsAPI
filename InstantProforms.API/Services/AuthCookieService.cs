@@ -7,6 +7,7 @@ namespace InstantProforms.Api.Services;
 
 public sealed class AuthCookieService : IAuthCookieService
 {
+    private const string LegacyCsrfCookiePath = "/api/auth";
     private readonly JwtSettings _jwtSettings;
 
     public AuthCookieService(IOptions<JwtSettings> jwtSettings)
@@ -39,24 +40,53 @@ public sealed class AuthCookieService : IAuthCookieService
 
     public void AppendCsrfCookie(HttpResponse response, string csrfToken)
     {
+        DeleteLegacyCsrfCookie(response);
+
         response.Cookies.Append(CsrfCookieExtensions.CsrfCookieName, csrfToken, new CookieOptions
         {
             HttpOnly = false,
             Secure = true,
             SameSite = SameSiteMode.None,
-            IsEssential = true
+            IsEssential = true,
+            Path = "/"
         });
     }
 
     public void ClearSessionCookies(HttpResponse response)
     {
-        response.Cookies.Delete("accessToken");
-        response.Cookies.Delete("refreshToken");
+        response.Cookies.Delete("accessToken", new CookieOptions
+        {
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
+
+        response.Cookies.Delete("refreshToken", new CookieOptions
+        {
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
+
         response.Cookies.Delete(CsrfCookieExtensions.CsrfCookieName, new CookieOptions
         {
             Secure = true,
             SameSite = SameSiteMode.None,
-            IsEssential = true
+            IsEssential = true,
+            Path = "/"
+        });
+
+        DeleteLegacyCsrfCookie(response);
+    }
+
+    private static void DeleteLegacyCsrfCookie(HttpResponse response)
+    {
+        response.Cookies.Delete(CsrfCookieExtensions.CsrfCookieName, new CookieOptions
+        {
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            IsEssential = true,
+            Path = LegacyCsrfCookiePath
         });
     }
 }
