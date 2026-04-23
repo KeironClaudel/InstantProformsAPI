@@ -127,6 +127,21 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddProblemDetails();
 
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "https://localhost:5173",
+                "http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
@@ -152,6 +167,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseRouting();
+app.UseCors("FrontendPolicy");
 app.UseRateLimiter();
 
 app.UseAuthentication();

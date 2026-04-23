@@ -8,7 +8,6 @@ using InstantProforms.Application.Features.Auth.Logout;
 using InstantProforms.Application.Features.Auth.RefToken;
 using InstantProforms.Application.Features.Auth.RegisterCompany;
 using InstantProforms.Application.Features.Auth.ResetPassword;
-using InstantProforms.Infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
