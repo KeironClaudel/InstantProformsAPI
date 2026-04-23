@@ -115,6 +115,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Register the current user service
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthCookieService, AuthCookieService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // AUTHENTICATION & AUTHORIZATION

@@ -1,6 +1,5 @@
-﻿using InstantProforms.Api.Common.Extensions;
 using InstantProforms.Api.Contracts.Auth;
-using InstantProforms.Api.Extensions;
+using InstantProforms.Api.Services;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Features.Auth.ForgotPassword;
 using InstantProforms.Application.Features.Auth.GetCurrentUser;
@@ -24,11 +23,16 @@ namespace InstantProforms.Api.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IAuthCookieService _authCookieService;
     private readonly ICsrfTokenService _csrfTokenService;
 
-    public AuthController(ISender sender, ICsrfTokenService csrfTokenService)
+    public AuthController(
+        ISender sender,
+        ICsrfTokenService csrfTokenService,
+        IAuthCookieService authCookieService)
     {
         _sender = sender;
+        _authCookieService = authCookieService;
         _csrfTokenService = csrfTokenService;
     }
 
@@ -66,11 +70,8 @@ public sealed class AuthController : ControllerBase
     {
         var response = await _sender.Send(request.ToCommand(), cancellationToken);
 
-        Response.AppendAccessTokenCookie(response.AccessToken);
-        Response.AppendRefreshTokenCookie(response.RefreshToken);
-
         var csrfToken = _csrfTokenService.GenerateToken();
-        Response.AppendCsrfCookie(csrfToken);
+        _authCookieService.AppendSessionCookies(Response, response.AccessToken, response.RefreshToken, csrfToken);
 
         return Ok(new
         {
@@ -89,6 +90,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>A generic success response with new tokens set in cookies.</returns>
     [EnableRateLimiting("auth-strict")]
     [HttpPost("refresh")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> Refresh(CancellationToken cancellationToken)
     {
@@ -102,11 +104,8 @@ public sealed class AuthController : ControllerBase
             new RefreshTokenCommand(refreshToken),
             cancellationToken);
 
-        Response.AppendAccessTokenCookie(response.AccessToken);
-        Response.AppendRefreshTokenCookie(response.RefreshToken);
-
         var csrfToken = _csrfTokenService.GenerateToken();
-        Response.AppendCsrfCookie(csrfToken);
+        _authCookieService.AppendSessionCookies(Response, response.AccessToken, response.RefreshToken, csrfToken);
 
         return Ok(new { message = "Token refreshed successfully." });
     }
@@ -118,7 +117,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>A generic success response indicating the user has been logged out.</returns>
     [EnableRateLimiting("auth-medium")]
     [HttpPost("logout")]
-    [Authorize]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> Logout(CancellationToken cancellationToken)
     {
@@ -128,8 +127,7 @@ public sealed class AuthController : ControllerBase
             await _sender.Send(new LogoutCommand(refreshToken), cancellationToken);
         }
 
-        Response.DeleteCsrfCookie();
-        Response.ClearAuthCookies();
+        _authCookieService.ClearSessionCookies(Response);
 
         return Ok(new { message = "Logged out successfully." });
     }
@@ -192,8 +190,7 @@ public sealed class AuthController : ControllerBase
         CancellationToken cancellationToken)
     {
         var response = await _sender.Send(request.ToCommand(), cancellationToken);
-        Response.ClearAuthCookies();
-        Response.DeleteCsrfCookie();
+        _authCookieService.ClearSessionCookies(Response);
         return Ok(response);
     }
 }

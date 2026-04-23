@@ -1,4 +1,4 @@
-﻿using InstantProforms.Api.Common.Extensions;
+using InstantProforms.Api.Services;
 using InstantProforms.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,15 +13,20 @@ namespace InstantProforms.Api.Controllers;
 [Route("api/security")]
 public sealed class SecurityController : ControllerBase
 {
+    private readonly IAuthCookieService _authCookieService;
     private readonly ICsrfTokenService _csrfTokenService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SecurityController"/> class.
     /// </summary>
     /// <param name="csrfTokenService">The CSRF token service.</param>
-    public SecurityController(ICsrfTokenService csrfTokenService)
+    /// <param name="authCookieService">The auth cookie service.</param>
+    public SecurityController(
+        ICsrfTokenService csrfTokenService,
+        IAuthCookieService authCookieService)
     {
         _csrfTokenService = csrfTokenService;
+        _authCookieService = authCookieService;
     }
 
     /// <summary>
@@ -34,7 +39,7 @@ public sealed class SecurityController : ControllerBase
     {
         var token = _csrfTokenService.GenerateToken();
 
-        Response.AppendCsrfCookie(token);
+        _authCookieService.AppendCsrfCookie(Response, token);
 
         return Ok(new
         {
