@@ -1,8 +1,6 @@
-# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY ["InstantProforms.sln", "./"]
 COPY ["InstantProforms.API/InstantProforms.API.csproj", "InstantProforms.API/"]
 COPY ["InstantProforms.Application/InstantProforms.Application.csproj", "InstantProforms.Application/"]
 COPY ["InstantProforms.Domain/InstantProforms.Domain.csproj", "InstantProforms.Domain/"]
@@ -17,7 +15,6 @@ RUN dotnet publish "InstantProforms.API/InstantProforms.API.csproj" \
     -o /app/publish \
     --no-restore
 
-# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
