@@ -45,8 +45,14 @@ public sealed class GetPagedProformsQueryHandler
             items.Select(x => new GetPagedProformsItemResponse(
                 x.Id,
                 x.Number,
+                x.Status.ToString(),
                 x.ClientName,
                 x.IssuedAtUtc,
+                x.ClientEmail,
+                x.ClientPhone,
+                x.Subtotal,
+                x.TaxPercentage,
+                x.TaxAmount,
                 x.Total))
             .ToList(),
             request.Page,

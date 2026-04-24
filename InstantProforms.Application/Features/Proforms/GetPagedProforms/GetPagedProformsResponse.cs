@@ -15,6 +15,12 @@ public sealed record GetPagedProformsResponse(
 public sealed record GetPagedProformsItemResponse(
     Guid Id,
     string Number,
+    string Status,
     string ClientName,
     DateTime IssuedAtUtc,
+    string? ClientEmail,
+    string? ClientPhone,
+    decimal Subtotal,
+    decimal TaxPercentage,
+    decimal TaxAmount,
     decimal Total);
