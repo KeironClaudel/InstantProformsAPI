@@ -48,7 +48,7 @@ public sealed class SupabaseFileStorageService : IFileStorageService
             throw new InvalidOperationException("SupabaseStorage:BucketName is required.");
         }
 
-        _httpClient.BaseAddress = new Uri(_settings.Url.TrimEnd('/') + "/", UriKind.Absolute);
+        _httpClient.BaseAddress = NormalizeBaseAddress(_settings.Url);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _settings.ServiceRoleKey);
         _httpClient.DefaultRequestHeaders.Remove("apikey");
         _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ServiceRoleKey);
@@ -168,5 +168,15 @@ public sealed class SupabaseFileStorageService : IFileStorageService
         return ContentTypes.TryGetValue(extension, out var contentType)
             ? contentType
             : "application/octet-stream";
+    }
+
+    private static Uri NormalizeBaseAddress(string configuredUrl)
+    {
+        if (!Uri.TryCreate(configuredUrl.Trim(), UriKind.Absolute, out var uri))
+        {
+            throw new InvalidOperationException("SupabaseStorage:Url must be a valid absolute URL.");
+        }
+
+        return new Uri(uri.GetLeftPart(UriPartial.Authority) + "/", UriKind.Absolute);
     }
 }
