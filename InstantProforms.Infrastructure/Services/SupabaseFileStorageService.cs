@@ -2,6 +2,8 @@ using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Models;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace InstantProforms.Infrastructure.Services;
 
@@ -86,14 +88,22 @@ public sealed class SupabaseFileStorageService : IFileStorageService
             return;
         }
 
-        using var response = await _httpClient.DeleteAsync(BuildObjectUri(relativePath), cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Delete, BuildDeleteObjectsUri())
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new { prefixes = new[] { NormalizeRelativePath(relativePath) } }),
+                Encoding.UTF8,
+                "application/json")
+        };
 
-        if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (response.IsSuccessStatusCode
+            || response.StatusCode == System.Net.HttpStatusCode.NotFound
+            || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
             return;
         }
-
-        response.EnsureSuccessStatusCode();
     }
 
     /// <inheritdoc />
@@ -138,14 +148,24 @@ public sealed class SupabaseFileStorageService : IFileStorageService
         return $"{companyLogosFolder}/{companyId}/{storedFileName}";
     }
 
+    private string NormalizeRelativePath(string relativePath)
+    {
+        return relativePath.Trim().TrimStart('/').Replace("\\", "/");
+    }
+
     private string BuildObjectUri(string relativePath)
     {
-        return $"storage/v1/object/{EscapePathSegment(_settings.BucketName)}/{EscapeObjectPath(relativePath)}";
+        return $"storage/v1/object/{EscapePathSegment(_settings.BucketName)}/{EscapeObjectPath(NormalizeRelativePath(relativePath))}";
     }
 
     private string BuildPublicObjectUri(string relativePath)
     {
-        return $"storage/v1/object/public/{EscapePathSegment(_settings.BucketName)}/{EscapeObjectPath(relativePath)}";
+        return $"storage/v1/object/public/{EscapePathSegment(_settings.BucketName)}/{EscapeObjectPath(NormalizeRelativePath(relativePath))}";
+    }
+
+    private string BuildDeleteObjectsUri()
+    {
+        return $"storage/v1/object/{EscapePathSegment(_settings.BucketName)}";
     }
 
     private static string EscapeObjectPath(string relativePath)
