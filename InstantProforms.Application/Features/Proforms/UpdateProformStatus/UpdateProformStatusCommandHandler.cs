@@ -69,10 +69,5 @@ public sealed class UpdateProformStatusCommandHandler
         {
             throw new InvalidOperationException("The proform already has the requested status.");
         }
-
-        if (currentStatus is ProformStatus.Cancelled or ProformStatus.Accepted or ProformStatus.Rejected)
-        {
-            throw new InvalidOperationException("The current proform status cannot be changed anymore.");
-        }
     }
 }
