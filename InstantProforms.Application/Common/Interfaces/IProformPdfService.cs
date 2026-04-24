@@ -11,6 +11,7 @@ public interface IProformPdfService
     /// Generates a PDF document for the specified proform model.
     /// </summary>
     /// <param name="model">The proform PDF model.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The generated PDF as a byte array.</returns>
-    byte[] Generate(ProformPdfModel model);
+    Task<byte[]> GenerateAsync(ProformPdfModel model, CancellationToken cancellationToken);
 }

@@ -23,7 +23,23 @@ public interface IFileStorageService
     /// Deletes a stored file if it exists.
     /// </summary>
     /// <param name="relativePath">The relative storage path.</param>
-    Task DeleteAsync(string relativePath);
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task DeleteAsync(string relativePath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the public URL for a stored file when available.
+    /// </summary>
+    /// <param name="relativePath">The relative storage path.</param>
+    /// <returns>The public URL or <c>null</c> when no path is provided.</returns>
+    string? GetPublicUrl(string? relativePath);
+
+    /// <summary>
+    /// Gets the stored file content as bytes.
+    /// </summary>
+    /// <param name="relativePath">The relative storage path.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The file content or <c>null</c> when it cannot be retrieved.</returns>
+    Task<byte[]?> GetBytesAsync(string? relativePath, CancellationToken cancellationToken);
 }
 
 /// <summary>

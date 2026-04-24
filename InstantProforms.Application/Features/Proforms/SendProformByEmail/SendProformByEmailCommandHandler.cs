@@ -61,7 +61,7 @@ public sealed class SendProformByEmailCommandHandler
         }
 
         var pdfModel = ProformPdfModelFactory.Create(proform, settings);
-        var pdfContent = _proformPdfService.Generate(pdfModel);
+        var pdfContent = await _proformPdfService.GenerateAsync(pdfModel, cancellationToken);
 
         var subject = string.IsNullOrWhiteSpace(request.Subject)
             ? $"Proform {proform.Number}"

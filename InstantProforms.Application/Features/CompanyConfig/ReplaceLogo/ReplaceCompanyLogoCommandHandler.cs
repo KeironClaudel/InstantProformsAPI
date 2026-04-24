@@ -44,7 +44,7 @@ public sealed class ReplaceCompanyLogoCommandHandler
 
         if (!string.IsNullOrWhiteSpace(settings.LogoFileName))
         {
-            await _fileStorageService.DeleteAsync(settings.LogoFileName);
+            await _fileStorageService.DeleteAsync(settings.LogoFileName, cancellationToken);
         }
 
         FileStorageSaveResult saveResult;

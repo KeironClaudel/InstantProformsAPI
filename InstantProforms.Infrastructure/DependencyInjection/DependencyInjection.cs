@@ -44,6 +44,8 @@ public static class DependencyInjection
         services.AddScoped<IProformRepository, ProformRepository>();
         services.AddScoped<IProformPdfService, QuestPdfProformPdfService>();
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+        services.Configure<SupabaseStorageSettings>(configuration.GetSection("SupabaseStorage"));
+        services.AddHttpClient<SupabaseFileStorageService>();
         services.AddScoped<IEmailService, SmtpEmailService>();
         services.AddScoped<ITokenHashService, Sha256TokenHashService>();
         services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordResetSettings"));
@@ -51,7 +53,7 @@ public static class DependencyInjection
         services.Configure<ProformShareSettings>(configuration.GetSection("ProformShareSettings"));
         services.AddScoped<IProformShareTokenRepository, ProformShareTokenRepository>();
         services.AddScoped<ICompanySettingsRepository, CompanySettingsRepository>();
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IFileStorageService>(serviceProvider => serviceProvider.GetRequiredService<SupabaseFileStorageService>());
         services.AddScoped<IStoredFileRepository, StoredFileRepository>();
         services.AddScoped<ICsrfTokenService, CsrfTokenService>();
 

@@ -1,4 +1,4 @@
-﻿using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Features.Proforms.Common;
 using InstantProforms.Infrastructure.Services.Pdf;
 using Microsoft.AspNetCore.Hosting;
@@ -13,27 +13,39 @@ namespace InstantProforms.Infrastructure.Services;
 public sealed class QuestPdfProformPdfService : IProformPdfService
 {
     private readonly IWebHostEnvironment _environment;
+    private readonly IFileStorageService _fileStorageService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QuestPdfProformPdfService"/> class.
     /// </summary>
     /// <param name="environment">The web host environment.</param>
-    public QuestPdfProformPdfService(IWebHostEnvironment environment)
+    /// <param name="fileStorageService">The file storage service.</param>
+    public QuestPdfProformPdfService(
+        IWebHostEnvironment environment,
+        IFileStorageService fileStorageService)
     {
         _environment = environment;
+        _fileStorageService = fileStorageService;
     }
 
     /// <inheritdoc />
-    public byte[] Generate(ProformPdfModel model)
+    public async Task<byte[]> GenerateAsync(ProformPdfModel model, CancellationToken cancellationToken)
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
-        var logoPath = string.IsNullOrWhiteSpace(model.LogoFileName)
-            ? Path.Combine(_environment.ContentRootPath, "Assets", "default-logo.png")
-            : Path.Combine(_environment.ContentRootPath, "wwwroot", model.LogoFileName.Replace("/", Path.DirectorySeparatorChar.ToString()));
+        var logoBytes = await _fileStorageService.GetBytesAsync(model.LogoFileName, cancellationToken)
+            ?? TryGetDefaultLogoBytes();
 
-        var document = new ProformPdfDocument(model, logoPath);
+        var document = new ProformPdfDocument(model, logoBytes);
 
         return document.GeneratePdf();
+    }
+
+    private byte[]? TryGetDefaultLogoBytes()
+    {
+        var defaultLogoPath = Path.Combine(_environment.ContentRootPath, "Assets", "default-logo.png");
+        return File.Exists(defaultLogoPath)
+            ? File.ReadAllBytes(defaultLogoPath)
+            : null;
     }
 }

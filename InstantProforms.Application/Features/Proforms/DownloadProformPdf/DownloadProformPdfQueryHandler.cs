@@ -57,7 +57,7 @@ public sealed class DownloadProformPdfQueryHandler
         }
 
         var model = ProformPdfModelFactory.Create(proform, settings);
-        var content = _proformPdfService.Generate(model);
+        var content = await _proformPdfService.GenerateAsync(model, cancellationToken);
 
         return new DownloadProformPdfResponse(
             content,

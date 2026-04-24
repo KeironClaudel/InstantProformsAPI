@@ -12,16 +12,19 @@ public sealed class GetCompanySettingsQueryHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IFileStorageService _fileStorageService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetCompanySettingsQueryHandler"/> class.
     /// </summary>
     public GetCompanySettingsQueryHandler(
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IFileStorageService fileStorageService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _fileStorageService = fileStorageService;
     }
 
     /// <inheritdoc />
@@ -51,7 +54,7 @@ public sealed class GetCompanySettingsQueryHandler
             settings.Address,
             settings.TermsAndConditions,
             settings.LogoFileName,
-            null,
+            _fileStorageService.GetPublicUrl(settings.LogoFileName),
             settings.PrimaryColor,
             settings.SecondaryColor,
             settings.AccentColor,

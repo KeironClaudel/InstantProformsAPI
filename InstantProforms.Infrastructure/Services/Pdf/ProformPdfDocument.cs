@@ -11,7 +11,7 @@ namespace InstantProforms.Infrastructure.Services.Pdf;
 /// </summary>
 public sealed class ProformPdfDocument : IDocument
 {
-    private readonly string _logoPath;
+    private readonly byte[]? _logoBytes;
     private readonly ProformPdfModel _data;
 
     private string PrimaryColor => string.IsNullOrWhiteSpace(_data.PrimaryColor) ? "#1B2D5A" : _data.PrimaryColor;
@@ -25,11 +25,11 @@ public sealed class ProformPdfDocument : IDocument
     /// Initializes a new instance of the <see cref="ProformPdfDocument"/> class.
     /// </summary>
     /// <param name="data">The proform data.</param>
-    /// <param name="logoPath">The company logo path.</param>
-    public ProformPdfDocument(ProformPdfModel data, string logoPath)
+    /// <param name="logoBytes">The company logo content.</param>
+    public ProformPdfDocument(ProformPdfModel data, byte[]? logoBytes)
     {
         _data = data;
-        _logoPath = logoPath;
+        _logoBytes = logoBytes;
     }
 
     /// <inheritdoc />
@@ -166,9 +166,9 @@ public sealed class ProformPdfDocument : IDocument
 
     private void ComposeLogo(IContainer container)
     {
-        if (File.Exists(_logoPath))
+        if (_logoBytes is { Length: > 0 })
         {
-            container.Image(_logoPath).FitArea();
+            container.Image(_logoBytes).FitArea();
         }
         else
         {
