@@ -10,6 +10,7 @@ InstantProforms API resuelve el flujo completo de una proforma dentro de una mis
 - autenticacion basada en JWT usando cookies seguras
 - administracion de branding y datos fiscales por empresa
 - creacion, consulta y actualizacion de proformas
+- listado paginado con estado, impuestos y datos del cliente
 - generacion de PDF para descarga o envio por correo
 - enlaces temporales para compartir proformas de forma publica
 
@@ -24,6 +25,8 @@ InstantProforms API resuelve el flujo completo de una proforma dentro de una mis
 - Generacion de PDF con QuestPDF
 - Envio de correos con MailKit
 - Swagger en ambiente de desarrollo
+- CORS configurado para integracion local con frontend en `localhost:5173`
+- Soporte para `UserSecrets` en desarrollo
 
 ## Tech Stack
 
@@ -66,7 +69,22 @@ InstantProforms/
 
 ### Configuracion
 
-Edita `InstantProforms.API/appsettings.json` y ajusta como minimo:
+La API soporta configuracion desde `appsettings.json` y `UserSecrets`.
+
+Para desarrollo local, se recomienda usar `UserSecrets` para credenciales y valores sensibles:
+
+```bash
+dotnet user-secrets init --project InstantProforms.API
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=InstantProformsDb;Username=postgres;Password=your-password" --project InstantProforms.API
+dotnet user-secrets set "JwtSettings:SecretKey" "REPLACE_WITH_A_SECRET_KEY_OF_AT_LEAST_32_CHARACTERS" --project InstantProforms.API
+dotnet user-secrets set "SmtpSettings:Host" "smtp.gmail.com" --project InstantProforms.API
+dotnet user-secrets set "SmtpSettings:Port" "465" --project InstantProforms.API
+dotnet user-secrets set "SmtpSettings:SenderEmail" "your-email@example.com" --project InstantProforms.API
+dotnet user-secrets set "SmtpSettings:Username" "your-email@example.com" --project InstantProforms.API
+dotnet user-secrets set "SmtpSettings:Password" "your-app-password" --project InstantProforms.API
+```
+
+Ajusta como minimo:
 
 - `ConnectionStrings:DefaultConnection`
 - `JwtSettings`
@@ -91,6 +109,11 @@ Ejemplo base:
 }
 ```
 
+Configuracion relevante adicional:
+
+- `PasswordResetSettings:ResetUrl`
+- `ProformShareSettings:PublicDownloadUrl`
+
 ### Ejecutar localmente
 
 ```bash
@@ -108,6 +131,11 @@ Swagger en desarrollo:
 
 - `https://localhost:7210/swagger`
 
+Frontend local permitido por CORS:
+
+- `http://localhost:5173`
+- `https://localhost:5173`
+
 ## Main Endpoints
 
 ### Auth
@@ -119,6 +147,10 @@ Swagger en desarrollo:
 - `GET /api/auth/me`
 - `POST /api/auth/forgot-password`
 - `POST /api/auth/reset-password`
+
+### Security
+
+- `GET /api/security/csrf-token`
 
 ### Company Settings
 
@@ -146,11 +178,13 @@ Swagger en desarrollo:
 
 - JWT Bearer con lectura del token desde cookie `accessToken`
 - Refresh token en cookie `refreshToken`
+- Logout idempotente via `POST /api/auth/logout` aunque no haya sesion autenticada activa
 - Cookie/header CSRF:
   - cookie `XSRF-TOKEN`
   - header `X-CSRF-TOKEN`
 - Politica global de autenticacion por defecto
 - Rate limit por IP y politicas especiales para endpoints sensibles
+- Limpieza automatica de cookie CSRF legacy de `/api/auth`
 
 ## Notes
 
@@ -159,6 +193,7 @@ Swagger en desarrollo:
 - Los logos y archivos publicos se sirven desde `InstantProforms.API/wwwroot`
 - Los enlaces publicos dependen de `ProformShareSettings:PublicDownloadUrl`
 - La recuperacion de contrasena depende de `PasswordResetSettings:ResetUrl`
+- El frontend local permitido por defecto es `localhost:5173`
 
 ## Project Status
 
@@ -167,6 +202,7 @@ Proyecto funcional para:
 - autenticacion y sesiones
 - configuracion de empresa
 - gestion de proformas
+- actualizacion manual de estado de proformas
 - descarga de PDF
 - envio por correo
 - enlaces publicos temporales
