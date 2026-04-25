@@ -1,5 +1,6 @@
 ﻿using InstantProforms.Api.Common.Helpers;
 using InstantProforms.Api.Contracts.CompanySettings;
+using InstantProforms.Application.Features.CompanyConfig.GetCompanyLogo;
 using InstantProforms.Application.Features.CompanyConfig.GetCompanySettings;
 using InstantProforms.Application.Features.CompanyConfig.ReplaceLogo;
 using InstantProforms.Application.Features.CompanyConfig.UpsertCompanySettings;
@@ -37,8 +38,31 @@ public sealed class CompanySettingsController : ControllerBase
     public async Task<ActionResult<GetCompanySettingsResponse>> Get(CancellationToken cancellationToken)
     {
         var response = await _sender.Send(new GetCompanySettingsQuery(), cancellationToken);
+        var logoUrl = BuildLogoEndpointUrl(response.LogoFileName);
 
-        return Ok(response);
+        return Ok(response with { LogoUrl = logoUrl });
+    }
+
+    /// <summary>
+    /// Gets the current company logo image.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The current company logo file.</returns>
+    [HttpGet("logo")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLogo(CancellationToken cancellationToken)
+    {
+        var response = await _sender.Send(new GetCompanyLogoQuery(), cancellationToken);
+
+        if (response is null)
+        {
+            return NotFound();
+        }
+
+        Response.Headers.CacheControl = "private, max-age=300";
+
+        return File(response.Content, response.ContentType);
     }
 
     /// <summary>
@@ -67,5 +91,18 @@ public sealed class CompanySettingsController : ControllerBase
         await _sender.Send(new ReplaceCompanyLogoCommand(request.LogoFile), cancellationToken);
 
         return NoContent();
+    }
+
+    private string? BuildLogoEndpointUrl(string? logoFileName)
+    {
+        if (string.IsNullOrWhiteSpace(logoFileName))
+        {
+            return null;
+        }
+
+        var version = Uri.EscapeDataString(logoFileName);
+        var pathBase = Request.PathBase.HasValue ? Request.PathBase.Value : string.Empty;
+
+        return $"{Request.Scheme}://{Request.Host}{pathBase}/api/company-settings/logo?v={version}";
     }
 }

@@ -125,14 +125,16 @@ public sealed class SupabaseFileStorageService : IFileStorageService
     /// <inheritdoc />
     public async Task<byte[]?> GetBytesAsync(string? relativePath, CancellationToken cancellationToken)
     {
-        var publicUrl = GetPublicUrl(relativePath);
-
-        if (string.IsNullOrWhiteSpace(publicUrl))
+        if (string.IsNullOrWhiteSpace(relativePath))
         {
             return null;
         }
 
-        using var response = await _httpClient.GetAsync(publicUrl, cancellationToken);
+        var requestUri = Uri.TryCreate(relativePath, UriKind.Absolute, out var absoluteUri)
+            ? absoluteUri.ToString()
+            : BuildObjectUri(relativePath);
+
+        using var response = await _httpClient.GetAsync(requestUri, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
