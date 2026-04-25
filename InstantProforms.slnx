@@ -3,4 +3,5 @@
   <Project Path="InstantProforms.Application/InstantProforms.Application.csproj" />
   <Project Path="InstantProforms.Domain/InstantProforms.Domain.csproj" />
   <Project Path="InstantProforms.Infrastructure/InstantProforms.Infrastructure.csproj" />
+  <Project Path="InstantProforms.Tests/InstantProforms.Tests.csproj" />
 </Solution>

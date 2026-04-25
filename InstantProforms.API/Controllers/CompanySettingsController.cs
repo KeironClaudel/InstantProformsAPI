@@ -38,17 +38,7 @@ public sealed class CompanySettingsController : ControllerBase
     {
         var response = await _sender.Send(new GetCompanySettingsQuery(), cancellationToken);
 
-        var logoUrl = FileUrlHelper.BuildAbsoluteUrl(
-            response.LogoFileName,
-            Request.Scheme,
-            Request.Host);
-
-        var result = response with
-        {
-            LogoUrl = logoUrl
-        };
-
-        return Ok(result);
+        return Ok(response);
     }
 
     /// <summary>
