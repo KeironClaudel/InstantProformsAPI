@@ -8,7 +8,7 @@ InstantProforms API resuelve el flujo completo de una proforma dentro de una mis
 
 - onboarding de companias con configuracion inicial y usuario administrador
 - autenticacion basada en JWT usando cookies seguras
-- administracion de branding y datos fiscales por empresa
+- administracion de branding, logos y datos fiscales por empresa
 - creacion, consulta y actualizacion de proformas
 - listado paginado con estado, impuestos y datos del cliente
 - generacion de PDF para descarga o envio por correo
@@ -24,6 +24,8 @@ InstantProforms API resuelve el flujo completo de una proforma dentro de una mis
 - Persistencia con PostgreSQL y Entity Framework Core
 - Generacion de PDF con QuestPDF
 - Envio de correos con MailKit
+- Almacenamiento de logos en Supabase Storage
+- Proxy autenticado de logos desde el backend
 - Swagger en ambiente de desarrollo
 - CORS configurado para integracion local con frontend en `localhost:5173`
 - Soporte para `UserSecrets` en desarrollo
@@ -48,7 +50,7 @@ La solucion sigue una estructura por capas:
 - `InstantProforms.API`: capa HTTP, controladores, middleware, contratos y seguridad
 - `InstantProforms.Application`: casos de uso, comandos, queries y validaciones
 - `InstantProforms.Domain`: entidades y reglas centrales del dominio
-- `InstantProforms.Infrastructure`: persistencia, JWT, email, PDF y almacenamiento local
+- `InstantProforms.Infrastructure`: persistencia, JWT, email, PDF y almacenamiento en Supabase
 
 ```text
 InstantProforms/
@@ -65,6 +67,7 @@ InstantProforms/
 
 - .NET 8 SDK
 - PostgreSQL
+- Supabase Storage para logos de empresa
 - Credenciales SMTP validas si se usaran correos
 
 ### Configuracion
@@ -82,6 +85,10 @@ dotnet user-secrets set "SmtpSettings:Port" "465" --project InstantProforms.API
 dotnet user-secrets set "SmtpSettings:SenderEmail" "your-email@example.com" --project InstantProforms.API
 dotnet user-secrets set "SmtpSettings:Username" "your-email@example.com" --project InstantProforms.API
 dotnet user-secrets set "SmtpSettings:Password" "your-app-password" --project InstantProforms.API
+dotnet user-secrets set "SupabaseStorage:Url" "https://your-project-ref.supabase.co" --project InstantProforms.API
+dotnet user-secrets set "SupabaseStorage:ServiceRoleKey" "your-service-role-key" --project InstantProforms.API
+dotnet user-secrets set "SupabaseStorage:BucketName" "logos" --project InstantProforms.API
+dotnet user-secrets set "SupabaseStorage:CompanyLogosFolder" "company-logos" --project InstantProforms.API
 ```
 
 Ajusta como minimo:
@@ -89,6 +96,7 @@ Ajusta como minimo:
 - `ConnectionStrings:DefaultConnection`
 - `JwtSettings`
 - `SmtpSettings`
+- `SupabaseStorage`
 - `PasswordResetSettings`
 - `ProformShareSettings`
 
@@ -113,6 +121,30 @@ Configuracion relevante adicional:
 
 - `PasswordResetSettings:ResetUrl`
 - `ProformShareSettings:PublicDownloadUrl`
+- `SupabaseStorage:Url`
+- `SupabaseStorage:ServiceRoleKey`
+- `SupabaseStorage:BucketName`
+- `SupabaseStorage:CompanyLogosFolder`
+
+### Logos de empresa
+
+Los logos se suben a Supabase Storage durante el registro de empresa y al reemplazarlos desde configuracion.
+
+La API guarda en base de datos la ruta relativa del objeto, por ejemplo:
+
+```text
+company-logos/{companyId}/{fileName}.png
+```
+
+La ruta relativa no debe incluir el nombre del bucket. El bucket se configura por separado en `SupabaseStorage:BucketName`.
+
+Aunque el archivo este en Supabase, el frontend no debe usar directamente una URL publica de Supabase. El endpoint `GET /api/company-settings` devuelve `logoUrl` apuntando al backend:
+
+```text
+/api/company-settings/logo?v={storedPath}
+```
+
+Luego `GET /api/company-settings/logo` lee el objeto desde Supabase usando `SupabaseStorage:ServiceRoleKey` y devuelve los bytes con el `Content-Type` correcto. Esto evita depender de que el bucket sea publico y mantiene el logo disponible aunque Supabase rechace `/storage/v1/object/public/...`.
 
 ### Ejecutar localmente
 
@@ -155,6 +187,7 @@ Frontend local permitido por CORS:
 ### Company Settings
 
 - `GET /api/company-settings`
+- `GET /api/company-settings/logo`
 - `PUT /api/company-settings`
 - `PUT /api/company-settings/logo`
 
@@ -190,7 +223,8 @@ Frontend local permitido por CORS:
 
 - Swagger solo se habilita en `Development`
 - La API crea automaticamente `wwwroot/uploads` si no existe
-- Los logos y archivos publicos se sirven desde `InstantProforms.API/wwwroot`
+- Los logos se guardan en Supabase Storage y se sirven al frontend mediante `GET /api/company-settings/logo`
+- Si un logo devuelve `400 Bucket not found` desde `/storage/v1/object/public/...`, revisar que el frontend este usando el `logoUrl` del backend y que Render tenga configurado el bucket correcto en `SupabaseStorage:BucketName`
 - Los enlaces publicos dependen de `ProformShareSettings:PublicDownloadUrl`
 - La recuperacion de contrasena depende de `PasswordResetSettings:ResetUrl`
 - El frontend local permitido por defecto es `localhost:5173`
