@@ -68,7 +68,7 @@ public sealed class ProformPdfDocument : IDocument
         {
             column.Item().Element(ComposeHeader);
             column.Item().PaddingTop(34).Element(ComposeMetaSection);
-            column.Item().PaddingTop(34).Element(ComposeItemsTable);
+            column.Item().PaddingTop(15).Element(ComposeItemsTable);
             column.Item().PaddingTop(18).Element(ComposeTotalsSection);
             column.Item().PaddingTop(20).Element(ComposeConditionsSection);
         });
