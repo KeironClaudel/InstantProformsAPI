@@ -11,6 +11,8 @@ namespace InstantProforms.Application.Features.CompanyConfig.UpsertCompanySettin
 public sealed class UpsertCompanySettingsCommandHandler
     : IRequestHandler<UpsertCompanySettingsCommand, UpsertCompanySettingsResponse>
 {
+    private const string LegacyProformPrefix = "PRO";
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
 
@@ -63,7 +65,9 @@ public sealed class UpsertCompanySettingsCommandHandler
         settings.PrimaryColor = request.PrimaryColor;
         settings.SecondaryColor = request.SecondaryColor;
         settings.AccentColor = request.AccentColor;
-        settings.ProformPrefix = request.ProformPrefix;
+        settings.ProformPrefix = string.IsNullOrWhiteSpace(request.ProformPrefix)
+            ? LegacyProformPrefix
+            : request.ProformPrefix.Trim();
         settings.CurrencySymbol = request.CurrencySymbol;
         settings.TaxPercentage = request.TaxPercentage;
         settings.TaxLabel = request.TaxLabel;

@@ -53,7 +53,6 @@ public sealed class UpsertCompanySettingsCommandValidator : AbstractValidator<Up
             .MaximumLength(20);
 
         RuleFor(x => x.ProformPrefix)
-            .NotEmpty()
             .MaximumLength(20);
 
         RuleFor(x => x.CurrencySymbol)

@@ -12,6 +12,8 @@ namespace InstantProforms.Application.Features.Auth.RegisterCompany;
 public sealed class RegisterCompanyCommandHandler
     : IRequestHandler<RegisterCompanyCommand, RegisterCompanyResponse>
 {
+    private const string LegacyProformPrefix = "PRO";
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IFileStorageService _fileStorageService;
@@ -113,7 +115,9 @@ public sealed class RegisterCompanyCommandHandler
             PrimaryColor = request.PrimaryColor,
             SecondaryColor = request.SecondaryColor,
             AccentColor = request.AccentColor,
-            ProformPrefix = request.ProformPrefix,
+            ProformPrefix = string.IsNullOrWhiteSpace(request.ProformPrefix)
+                ? LegacyProformPrefix
+                : request.ProformPrefix.Trim(),
             CurrencySymbol = request.CurrencySymbol,
             TaxPercentage = request.TaxPercentage,
             TaxLabel = request.TaxLabel,

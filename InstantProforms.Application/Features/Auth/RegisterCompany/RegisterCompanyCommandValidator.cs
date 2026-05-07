@@ -62,7 +62,6 @@ public sealed class RegisterCompanyCommandValidator : AbstractValidator<Register
             .MaximumLength(20);
 
         RuleFor(x => x.ProformPrefix)
-            .NotEmpty()
             .MaximumLength(20);
 
         RuleFor(x => x.CurrencySymbol)

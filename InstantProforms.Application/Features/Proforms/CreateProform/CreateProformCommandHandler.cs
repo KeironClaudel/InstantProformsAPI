@@ -48,12 +48,12 @@ public sealed class CreateProformCommandHandler
             throw new InvalidOperationException("Company settings were not found.");
         }
 
+        var utcNow = DateTime.UtcNow;
         var latestProform = await _unitOfWork.Proforms
                                              .GetLatestByCompanyAsync(companyId, cancellationToken);
 
-        var nextNumber = GenerateNextNumber(latestProform?.Number, settings.ProformPrefix);
+        var nextNumber = ProformNumberGenerator.GenerateNextNumber(latestProform?.Number, utcNow.Year);
 
-        var utcNow = DateTime.UtcNow;
         var proformId = Guid.NewGuid();
 
         var items = request.Items
@@ -111,28 +111,5 @@ public sealed class CreateProformCommandHandler
                 proform.TaxPercentage,
                 proform.TaxAmount,
                 proform.Total);
-    }
-
-    private static string GenerateNextNumber(string? latestNumber, string proformPrefix)
-    {
-        var normalizedPrefix = string.IsNullOrWhiteSpace(proformPrefix)
-            ? "PRO"
-            : proformPrefix.Trim().ToUpperInvariant();
-
-        var prefixWithSeparator = $"{normalizedPrefix}-";
-
-        if (string.IsNullOrWhiteSpace(latestNumber) || !latestNumber.StartsWith(prefixWithSeparator, StringComparison.OrdinalIgnoreCase))
-        {
-            return $"{prefixWithSeparator}000001";
-        }
-
-        var numericPart = latestNumber[prefixWithSeparator.Length..];
-
-        if (!int.TryParse(numericPart, out var currentNumber))
-        {
-            return $"{prefixWithSeparator}000001";
-        }
-
-        return $"{prefixWithSeparator}{(currentNumber + 1):D6}";
     }
 }
