@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using InstantProforms.Application.Features.Proforms.CreateProform;
+using FluentValidation;
 
 namespace InstantProforms.Application.Features.Proforms.CreateProform;
 
@@ -14,8 +13,11 @@ public sealed class CreateProformCommandValidator : AbstractValidator<CreateProf
     public CreateProformCommandValidator()
     {
         RuleFor(x => x.ClientName)
-            .NotEmpty()
             .MaximumLength(200);
+
+        RuleFor(x => x)
+            .Must(x => x.ClientId.HasValue || !string.IsNullOrWhiteSpace(x.ClientName))
+            .WithMessage("Client name is required when no saved client is selected.");
 
         RuleFor(x => x.ClientEmail)
             .MaximumLength(200)
@@ -27,6 +29,33 @@ public sealed class CreateProformCommandValidator : AbstractValidator<CreateProf
 
         RuleFor(x => x.Notes)
             .MaximumLength(1000);
+
+        RuleFor(x => x.Location)
+            .MaximumLength(1000);
+
+        RuleFor(x => x.InternalNotes)
+            .MaximumLength(4000);
+
+        RuleFor(x => x.ClientIdentificationNumber)
+            .MaximumLength(50);
+
+        RuleFor(x => x.ServiceDescription)
+            .MaximumLength(12000);
+
+        RuleFor(x => x.ScopeOfWork)
+            .MaximumLength(12000);
+
+        RuleFor(x => x.ServiceConditions)
+            .MaximumLength(12000);
+
+        RuleFor(x => x.PaymentConditions)
+            .MaximumLength(12000);
+
+        RuleFor(x => x)
+            .Must(x =>
+                (x.ClientIdentificationType is null && string.IsNullOrWhiteSpace(x.ClientIdentificationNumber)) ||
+                (x.ClientIdentificationType is not null && !string.IsNullOrWhiteSpace(x.ClientIdentificationNumber)))
+            .WithMessage("Client identification type and number must be provided together.");
 
         RuleFor(x => x.Items)
             .NotEmpty()

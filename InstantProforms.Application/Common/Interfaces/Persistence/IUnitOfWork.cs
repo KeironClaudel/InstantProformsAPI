@@ -16,6 +16,11 @@ public interface IUnitOfWork
     IUserRepository Users { get; }
 
     /// <summary>
+    /// Gets the client repository.
+    /// </summary>
+    IClientRepository Clients { get; }
+
+    /// <summary>
     /// Gets the role repository.
     /// </summary>
     IRoleRepository Roles { get; }

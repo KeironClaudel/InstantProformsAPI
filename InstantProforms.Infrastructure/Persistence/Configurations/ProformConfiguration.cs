@@ -20,6 +20,9 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(x => x.Currency)
+            .IsRequired();
+
         builder.Property(x => x.Status)
             .IsRequired();
 
@@ -33,8 +36,26 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
         builder.Property(x => x.ClientPhone)
             .HasMaxLength(50);
 
-        builder.Property(x => x.Notes)
+        builder.Property(x => x.ClientIdentificationNumber)
+            .HasMaxLength(50);
+
+        builder.Property(x => x.Location)
             .HasMaxLength(1000);
+
+        builder.Property(x => x.InternalNotes)
+            .HasColumnType("text");
+
+        builder.Property(x => x.ServiceDescription)
+            .HasColumnType("text");
+
+        builder.Property(x => x.ScopeOfWork)
+            .HasColumnType("text");
+
+        builder.Property(x => x.ServiceConditions)
+            .HasColumnType("text");
+
+        builder.Property(x => x.PaymentConditions)
+            .HasColumnType("text");
 
         builder.Property(x => x.Subtotal)
             .HasPrecision(18, 2);
@@ -55,6 +76,11 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
             .WithMany()
             .HasForeignKey(x => x.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Client)
+            .WithMany(x => x.Proforms)
+            .HasForeignKey(x => x.ClientId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.Items)
             .WithOne(x => x.proforms)

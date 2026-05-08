@@ -1,4 +1,4 @@
-﻿namespace InstantProforms.Application.Features.Proforms.GetProformById;
+namespace InstantProforms.Application.Features.Proforms.GetProformById;
 
 /// <summary>
 /// Represents the details of a proform.
@@ -6,12 +6,22 @@
 public sealed record GetProformByIdResponse(
     Guid Id,
     string Number,
+    Guid? ClientId,
+    string Currency,
     string Status,
     string ClientName,
     string? ClientEmail,
     string? ClientPhone,
+    string? ClientIdentificationType,
+    string? ClientIdentificationNumber,
     DateTime IssuedAtUtc,
     string? Notes,
+    string? Location,
+    string? InternalNotes,
+    string? ServiceDescription,
+    string? ScopeOfWork,
+    string? ServiceConditions,
+    string? PaymentConditions,
     decimal Subtotal,
     decimal TaxPercentage,
     decimal TaxAmount,

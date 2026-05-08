@@ -19,9 +19,19 @@ public sealed class Proform : BaseAuditableEntity
     public string Number { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the associated saved client identifier.
+    /// </summary>
+    public Guid? ClientId { get; set; }
+
+    /// <summary>
     /// Gets or sets the current status of the proforms.
     /// </summary>
     public ProformStatus Status { get; set; } = ProformStatus.Draft;
+
+    /// <summary>
+    /// Gets or sets the currency used by the proform.
+    /// </summary>
+    public ProformCurrency Currency { get; set; } = ProformCurrency.Colones;
 
     /// <summary>
     /// Gets or sets the client name.
@@ -39,14 +49,49 @@ public sealed class Proform : BaseAuditableEntity
     public string? ClientPhone { get; set; }
 
     /// <summary>
+    /// Gets or sets the client identification type snapshot.
+    /// </summary>
+    public ClientIdentificationType? ClientIdentificationType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the client identification number snapshot.
+    /// </summary>
+    public string? ClientIdentificationNumber { get; set; }
+
+    /// <summary>
     /// Gets or sets the issue date in UTC.
     /// </summary>
     public DateTime IssuedAtUtc { get; set; }
 
     /// <summary>
-    /// Gets or sets optional notes.
+    /// Gets or sets the service or delivery location shown in the proform.
     /// </summary>
-    public string? Notes { get; set; }
+    public string? Location { get; set; }
+
+    /// <summary>
+    /// Gets or sets internal notes kept only inside the application.
+    /// </summary>
+    public string? InternalNotes { get; set; }
+
+    /// <summary>
+    /// Gets or sets the service description section.
+    /// </summary>
+    public string? ServiceDescription { get; set; }
+
+    /// <summary>
+    /// Gets or sets the scope of work section.
+    /// </summary>
+    public string? ScopeOfWork { get; set; }
+
+    /// <summary>
+    /// Gets or sets the service conditions section.
+    /// </summary>
+    public string? ServiceConditions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the payment conditions section.
+    /// </summary>
+    public string? PaymentConditions { get; set; }
 
     /// <summary>
     /// Gets or sets the subtotal amount.
@@ -62,6 +107,11 @@ public sealed class Proform : BaseAuditableEntity
     /// Gets or sets the related company.
     /// </summary>
     public Company Company { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the related client when the proform is linked to a saved client.
+    /// </summary>
+    public Client? Client { get; set; }
 
     /// <summary>
     /// Gets or sets the tax percentage applied to the proform.

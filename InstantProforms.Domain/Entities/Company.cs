@@ -51,4 +51,9 @@ public sealed class Company : BaseAuditableEntity
     /// Gets or sets the users that belong to the company.
     /// </summary>
     public ICollection<User> Users { get; set; } = new List<User>();
+
+    /// <summary>
+    /// Gets or sets the clients that belong to the company.
+    /// </summary>
+    public ICollection<Client> Clients { get; set; } = new List<Client>();
 }

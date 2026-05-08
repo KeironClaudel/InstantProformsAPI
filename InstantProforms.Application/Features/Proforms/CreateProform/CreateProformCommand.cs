@@ -1,4 +1,5 @@
-﻿using MediatR;
+using InstantProforms.Domain.Enums;
+using MediatR;
 
 namespace InstantProforms.Application.Features.Proforms.CreateProform;
 
@@ -6,10 +7,20 @@ namespace InstantProforms.Application.Features.Proforms.CreateProform;
 /// Represents a request to create a new proform.
 /// </summary>
 public sealed record CreateProformCommand(
+    Guid? ClientId,
     string ClientName,
     string? ClientEmail,
     string? ClientPhone,
     string? Notes,
+    string? Location,
+    string? InternalNotes,
+    ClientIdentificationType? ClientIdentificationType,
+    string? ClientIdentificationNumber,
+    ProformCurrency? Currency,
+    string? ServiceDescription,
+    string? ScopeOfWork,
+    string? ServiceConditions,
+    string? PaymentConditions,
     IReadOnlyCollection<CreateProformItemModel> Items) : IRequest<CreateProformResponse>;
 
 /// <summary>

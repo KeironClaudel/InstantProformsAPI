@@ -1,4 +1,4 @@
-﻿namespace InstantProforms.Application.Features.Proforms.Common;
+namespace InstantProforms.Application.Features.Proforms.Common;
 
 /// <summary>
 /// Represents the data required to render a proform PDF.
@@ -22,10 +22,17 @@ public sealed record ProformPdfModel(
     string ClientName,
     string? ClientEmail,
     string? ClientPhone,
+    string? ClientIdentificationType,
+    string? ClientIdentificationNumber,
     decimal TaxPercentage,
     decimal TaxAmount,
     DateTime IssuedAtUtc,
-    string? Notes,
+    string? Location,
+    string? InternalNotes,
+    string? ServiceDescription,
+    string? ScopeOfWork,
+    string? ServiceConditions,
+    string? PaymentConditions,
     decimal Subtotal,
     decimal Total,
     IReadOnlyCollection<ProformPdfItemModel> Items);

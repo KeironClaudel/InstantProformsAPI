@@ -24,6 +24,7 @@ public sealed class UnitOfWork : IUnitOfWork
     public UnitOfWork(
         AppDbContext context,
         ICompanyRepository companies,
+        IClientRepository clients,
         IUserRepository users,
         IRoleRepository roles,
         IRefreshTokenRepository refreshTokens,
@@ -35,6 +36,7 @@ public sealed class UnitOfWork : IUnitOfWork
     {
         _context = context;
         Companies = companies;
+        Clients = clients;
         Users = users;
         Roles = roles;
         RefreshTokens = refreshTokens;
@@ -50,6 +52,9 @@ public sealed class UnitOfWork : IUnitOfWork
 
     /// <inheritdoc />
     public ICompanyRepository Companies { get; }
+
+    /// <inheritdoc />
+    public IClientRepository Clients { get; }
 
     /// <inheritdoc />
     public IUserRepository Users { get; }

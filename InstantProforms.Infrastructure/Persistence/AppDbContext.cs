@@ -11,6 +11,7 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     {
     }
     public DbSet<Company> Companies => Set<Company>();
+    public DbSet<Client> Clients => Set<Client>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

@@ -6,6 +6,7 @@ namespace InstantProforms.Application.Common.Interfaces;
 public interface IApplicationDbContext
 {
     DbSet<Company> Companies { get; }
+    DbSet<Client> Clients { get; }
     DbSet<User> Users { get; }
     DbSet<Role> Roles { get; }
     DbSet<RefreshToken> RefreshTokens { get; }

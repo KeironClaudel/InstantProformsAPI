@@ -1,4 +1,4 @@
-﻿using InstantProforms.Application.Features.Proforms.Common;
+using InstantProforms.Application.Features.Proforms.Common;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -15,11 +15,13 @@ public sealed class ProformPdfDocument : IDocument
     private readonly ProformPdfModel _data;
 
     private string PrimaryColor => string.IsNullOrWhiteSpace(_data.PrimaryColor) ? "#1B2D5A" : _data.PrimaryColor;
-    private string SecondaryColor => string.IsNullOrWhiteSpace(_data.SecondaryColor) ? "#e6c7f0" : _data.SecondaryColor;
-    private string AccentColor => string.IsNullOrWhiteSpace(_data.AccentColor) ? "#dbe2ff" : _data.AccentColor;
+    private string SecondaryColor => string.IsNullOrWhiteSpace(_data.SecondaryColor) ? "#E9EEF9" : _data.SecondaryColor;
+    private string AccentColor => string.IsNullOrWhiteSpace(_data.AccentColor) ? "#DCE6FF" : _data.AccentColor;
 
     private const string BlackText = "#111111";
     private const string DividerColor = "#222222";
+    private const string MutedText = "#52607A";
+    private const string LightBorder = "#CAD5E6";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProformPdfDocument"/> class.
@@ -38,18 +40,61 @@ public sealed class ProformPdfDocument : IDocument
     /// <inheritdoc />
     public void Compose(IDocumentContainer container)
     {
+        var editorialSections = GetEditorialSections();
+
+        if (editorialSections.Count > 0)
+        {
+            container.Page(page =>
+            {
+                ConfigurePage(page);
+                page.Content().Layers(layers =>
+                {
+                    layers.Layer().Element(ComposeBackground);
+                    layers.PrimaryLayer()
+                        .PaddingHorizontal(44)
+                        .PaddingVertical(30)
+                        .Element(content => ComposeLeadingEditorialContent(content, editorialSections[0]));
+                });
+            });
+
+            foreach (var section in editorialSections.Skip(1))
+            {
+                container.Page(page =>
+                {
+                    ConfigurePage(page);
+                    page.Content().Layers(layers =>
+                    {
+                        layers.Layer().Element(ComposeBackground);
+                        layers.PrimaryLayer()
+                            .PaddingLeft(68)
+                            .PaddingRight(54)
+                            .PaddingTop(118)
+                            .PaddingBottom(48)
+                            .Element(content => ComposeEditorialSection(content, section));
+                    });
+                });
+            }
+        }
+
         container.Page(page =>
         {
-            page.Size(PageSizes.A4);
-            page.Margin(0);
-            page.DefaultTextStyle(x => x.FontSize(12.5f).FontColor(BlackText));
-
+            ConfigurePage(page);
             page.Content().Layers(layers =>
             {
                 layers.Layer().Element(ComposeBackground);
-                layers.PrimaryLayer().PaddingHorizontal(44).PaddingVertical(30).Element(ComposeContent);
+                layers.PrimaryLayer()
+                    .PaddingHorizontal(44)
+                    .PaddingVertical(30)
+                    .Element(ComposeProformContent);
             });
         });
+    }
+
+    private static void ConfigurePage(PageDescriptor page)
+    {
+        page.Size(PageSizes.A4);
+        page.Margin(0);
+        page.DefaultTextStyle(x => x.FontSize(12.5f).FontColor(BlackText));
     }
 
     private void ComposeBackground(IContainer container)
@@ -62,7 +107,17 @@ public sealed class ProformPdfDocument : IDocument
         }
     }
 
-    private void ComposeContent(IContainer container)
+    private void ComposeLeadingEditorialContent(IContainer container, EditorialSection firstSection)
+    {
+        container.Column(column =>
+        {
+            column.Item().Element(ComposeHeader);
+            column.Item().PaddingTop(34).Element(ComposeMetaSection);
+            column.Item().PaddingTop(52).Element(content => ComposeEditorialSection(content, firstSection));
+        });
+    }
+
+    private void ComposeProformContent(IContainer container)
     {
         container.Column(column =>
         {
@@ -70,7 +125,27 @@ public sealed class ProformPdfDocument : IDocument
             column.Item().PaddingTop(34).Element(ComposeMetaSection);
             column.Item().PaddingTop(15).Element(ComposeItemsTable);
             column.Item().PaddingTop(18).Element(ComposeTotalsSection);
-            column.Item().PaddingTop(20).Element(ComposeConditionsSection);
+        });
+    }
+
+    private void ComposeEditorialSection(IContainer container, EditorialSection section)
+    {
+        container.Column(column =>
+        {
+            column.Item().Text(section.Title)
+                .FontColor(PrimaryColor)
+                .FontSize(25)
+                .ExtraBold();
+
+            column.Item().PaddingTop(8).Text(_data.Number)
+                .FontColor(MutedText)
+                .FontSize(10.5f)
+                .SemiBold();
+
+            column.Item().PaddingTop(18).LineHorizontal(1).LineColor(PrimaryColor);
+
+            column.Item().PaddingTop(24)
+                .Element(content => ComposeBlockList(content, section.Blocks, 11.5f, 1.65f, PrimaryColor));
         });
     }
 
@@ -96,14 +171,16 @@ public sealed class ProformPdfDocument : IDocument
                             {
                                 iconRow.RelativeItem().AlignRight().Text(_data.Phone).FontSize(12);
                                 iconRow.ConstantItem(18)
-                                    .PaddingLeft(4)      
+                                    .PaddingLeft(4)
                                     .Height(14)
                                     .AlignMiddle()
                                     .AlignRight()
                                     .Element(icon =>
                                     {
                                         if (File.Exists(phoneIconPath))
+                                        {
                                             icon.Image(phoneIconPath).FitArea();
+                                        }
                                     });
                             });
                         }
@@ -114,14 +191,16 @@ public sealed class ProformPdfDocument : IDocument
                             {
                                 iconRow.RelativeItem().AlignRight().Text(_data.Website).FontSize(12);
                                 iconRow.ConstantItem(18)
-                                    .PaddingLeft(4)     
+                                    .PaddingLeft(4)
                                     .Height(14)
                                     .AlignMiddle()
                                     .AlignRight()
                                     .Element(icon =>
                                     {
                                         if (File.Exists(globeIconPath))
+                                        {
                                             icon.Image(globeIconPath).FitArea();
+                                        }
                                     });
                             });
                         }
@@ -143,7 +222,9 @@ public sealed class ProformPdfDocument : IDocument
                                     .Element(icon =>
                                     {
                                         if (File.Exists(locationIconPath))
+                                        {
                                             icon.Image(locationIconPath).FitArea();
+                                        }
                                     });
                             });
                         }
@@ -180,12 +261,9 @@ public sealed class ProformPdfDocument : IDocument
     {
         container.Column(column =>
         {
-            column.Item().Text(text =>
-            {
-                text.Span(_data.IssuedAtUtc.ToString("dd MMMM yyyy", new CultureInfo("es-ES")).ToUpperInvariant())
-                    .FontSize(10)
-                    .SemiBold();
-            });
+            column.Item().Text(_data.IssuedAtUtc.ToString("dd MMMM yyyy", new CultureInfo("es-ES")).ToUpperInvariant())
+                .FontSize(10)
+                .SemiBold();
 
             column.Item().PaddingTop(48).Row(row =>
             {
@@ -194,7 +272,7 @@ public sealed class ProformPdfDocument : IDocument
                     left.Item().Text(text =>
                     {
                         text.DefaultTextStyle(x => x.FontSize(11));
-                        text.Span("CLIENTE: ").ExtraBold(); ;
+                        text.Span("CLIENTE: ").ExtraBold();
                         text.Span(_data.ClientName.ToUpperInvariant());
                     });
 
@@ -203,17 +281,27 @@ public sealed class ProformPdfDocument : IDocument
                         left.Item().PaddingTop(2).Text(text =>
                         {
                             text.DefaultTextStyle(x => x.FontSize(11));
-                            text.Span("TELÉFONO: ").ExtraBold();
+                            text.Span("TELEFONO: ").ExtraBold();
                             text.Span(_data.ClientPhone!.ToUpperInvariant());
                         });
                     }
 
-                    if (!string.IsNullOrWhiteSpace(_data.Notes))
+                    if (!string.IsNullOrWhiteSpace(_data.ClientIdentificationNumber))
                     {
                         left.Item().PaddingTop(2).Text(text =>
                         {
                             text.DefaultTextStyle(x => x.FontSize(11));
-                            text.Span(_data.Notes!.ToUpperInvariant());
+                            text.Span($"{GetIdentificationLabel()}: ").ExtraBold();
+                            text.Span(_data.ClientIdentificationNumber!.ToUpperInvariant());
+                        });
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(_data.Location))
+                    {
+                        left.Item().PaddingTop(2).Text(text =>
+                        {
+                            text.DefaultTextStyle(x => x.FontSize(11));
+                            text.Span(_data.Location!.ToUpperInvariant());
                         });
                     }
                 });
@@ -224,7 +312,7 @@ public sealed class ProformPdfDocument : IDocument
                     .Text(text =>
                     {
                         text.DefaultTextStyle(x => x.FontSize(11));
-                        text.Span("COTIZACIÓN: ").ExtraBold().FontColor(PrimaryColor);
+                        text.Span("COTIZACION: ").ExtraBold().FontColor(PrimaryColor);
                         text.Span(_data.Number).Bold();
                     });
             });
@@ -248,7 +336,7 @@ public sealed class ProformPdfDocument : IDocument
 
                 table.Header(header =>
                 {
-                    header.Cell().PaddingLeft(14).Text("DESCRIPCIÓN").FontSize(10).SemiBold();
+                    header.Cell().PaddingLeft(14).Text("DESCRIPCION").FontSize(10).SemiBold();
                     header.Cell().AlignCenter().Text("CANTIDAD").FontSize(10).SemiBold();
                     header.Cell().AlignRight().PaddingRight(14).Text("TOTAL").FontSize(10).SemiBold();
                 });
@@ -283,163 +371,136 @@ public sealed class ProformPdfDocument : IDocument
         {
             column.Item().LineHorizontal(1).LineColor(DividerColor);
 
-            column.Item().PaddingTop(10).Row(row =>
+            column.Item().PaddingTop(12).Row(row =>
             {
                 row.RelativeItem();
 
-                row.ConstantItem(300).Column(inner =>
+                row.ConstantItem(320).Column(inner =>
                 {
-                    inner.Item().Row(r =>
-                    {
-                        r.RelativeItem()
-                            .AlignRight()
-                            .Text("Sub-Total")
-                            .Italic()
-                            .ExtraBold()
-                            .FontSize(14);
+                    inner.Item().Element(rowContainer =>
+                        ComposeSummaryLine(rowContainer, "Sub-Total", FormatCurrency(_data.Subtotal), false));
 
-                        r.ConstantItem(110)
-                            .AlignRight()
-                            .Text(FormatCurrency(_data.Subtotal))
-                            .Bold();
-                    });
+                    inner.Item().PaddingTop(8).Element(rowContainer =>
+                        ComposeSummaryLine(rowContainer, _data.TaxLabel, FormatCurrency(_data.TaxAmount), false));
 
-                    inner.Item().PaddingTop(2).LineHorizontal(1).LineColor(DividerColor);
+                    inner.Item().PaddingTop(8).LineHorizontal(1).LineColor(DividerColor);
 
-                    inner.Item().PaddingTop(10).Row(r =>
-                    {
-                        r.RelativeItem()
-                            .AlignRight()
-                            .Text(_data.TaxLabel)
-                            .Italic()
-                            .ExtraBold()
-                            .FontSize(14);
-
-                        r.ConstantItem(110)
-                            .AlignRight()
-                            .Text(FormatCurrency(_data.Total))
-                            .Bold();
-                    });
-
-                    inner.Item().PaddingTop(6).LineHorizontal(1).LineColor(DividerColor);
+                    inner.Item().PaddingTop(10).Element(rowContainer =>
+                        ComposeSummaryLine(rowContainer, "Total", FormatCurrency(_data.Total), true));
                 });
             });
         });
     }
 
-    private void ComposeConditionsSection(IContainer container)
+    private void ComposeBlockList(
+        IContainer container,
+        IReadOnlyList<ProformPdfTextBlock> blocks,
+        float fontSize,
+        float lineHeight,
+        string bulletColor)
     {
-        var conditions = GetConditions();
-
-        if (conditions.Count == 0)
+        container.Column(column =>
         {
-            return;
-        }
+            foreach (var block in blocks)
+            {
+                if (block.Kind == ProformPdfTextBlockKind.Bullet)
+                {
+                    column.Item().PaddingBottom(10).Row(row =>
+                    {
+                        row.ConstantItem(14)
+                            .AlignTop()
+                            .Text("•")
+                            .FontColor(bulletColor)
+                            .FontSize(fontSize + 1);
 
+                        row.RelativeItem()
+                            .Text(block.Text)
+                            .Justify()
+                            .FontSize(fontSize)
+                            .LineHeight(lineHeight);
+                    });
+
+                    continue;
+                }
+
+                column.Item()
+                    .PaddingBottom(12)
+                    .Text(block.Text)
+                    .Justify()
+                    .FontSize(fontSize)
+                    .LineHeight(lineHeight);
+            }
+        });
+    }
+
+    private void ComposeSummaryLine(IContainer container, string label, string value, bool emphasize)
+    {
         container.Row(row =>
         {
-            row.ConstantItem(380).Column(column =>
-            {
-                column.Item().Text("CONDICIONES")
-                    .FontColor(PrimaryColor)
-                    .FontSize(16)
-                    .ExtraBold();
+            row.RelativeItem()
+                .Text(label)
+                .FontSize(emphasize ? 14 : 12)
+                .FontColor(emphasize ? BlackText : MutedText)
+                .ExtraBold();
 
-                column.Item().PaddingTop(8).Column(list =>
-                {
-                    foreach (var condition in conditions)
-                    {
-                        list.Item().PaddingBottom(3).Row(itemRow =>
-                        {
-                            itemRow.ConstantItem(12)
-                                .Text("•")
-                                .FontColor(PrimaryColor)
-                                .FontSize(12);
-
-                            itemRow.RelativeItem()
-                                .Text(condition)
-                                .FontSize(9.5f)
-                                .LineHeight(1.2f);
-                        });
-                    }
-                });
-            });
+            row.ConstantItem(120)
+                .AlignRight()
+                .Text(value)
+                .FontSize(emphasize ? 14 : 12)
+                .Bold();
         });
+    }
+
+    private IReadOnlyList<EditorialSection> GetEditorialSections()
+    {
+        var sections = new List<EditorialSection>();
+
+        TryAddSection(sections, "Descripcion del servicio", _data.ServiceDescription);
+        TryAddSection(sections, "Alcances del trabajo", _data.ScopeOfWork);
+        TryAddSection(
+            sections,
+            "Condiciones del servicio",
+            ProformPdfRichTextParser.ParseServiceConditions(_data.ServiceConditions, _data.TermsAndConditions));
+        TryAddSection(sections, "Condiciones de pago", _data.PaymentConditions);
+
+        return sections;
+    }
+
+    private static void TryAddSection(ICollection<EditorialSection> sections, string title, string? content)
+    {
+        var blocks = ProformPdfRichTextParser.Parse(content);
+
+        if (blocks.Count > 0)
+        {
+            sections.Add(new EditorialSection(title, blocks));
+        }
+    }
+
+    private static void TryAddSection(
+        ICollection<EditorialSection> sections,
+        string title,
+        IReadOnlyList<ProformPdfTextBlock> blocks)
+    {
+        if (blocks.Count > 0)
+        {
+            sections.Add(new EditorialSection(title, blocks));
+        }
+    }
+
+    private string GetIdentificationLabel()
+    {
+        return _data.ClientIdentificationType switch
+        {
+            "PhysicalId" => "CEDULA FISICA",
+            "LegalEntityId" => "CEDULA JURIDICA",
+            _ => "IDENTIFICACION"
+        };
     }
 
     private string FormatCurrency(decimal amount)
     {
-        return $"{_data.CurrencySymbol}{amount:N0}";
+        return $"{_data.CurrencySymbol}{amount:N2}";
     }
 
-    private IReadOnlyList<string> GetConditions()
-    {
-        if (string.IsNullOrWhiteSpace(_data.TermsAndConditions))
-        {
-            return Array.Empty<string>();
-        }
-
-        var normalized = _data.TermsAndConditions
-            .Replace("\\n", "\n")
-            .Replace("\r", string.Empty)
-            .Trim();
-
-        // Preferred format:
-        // one bullet per paragraph, separated by a blank line
-        if (normalized.Contains("\n\n"))
-        {
-            return normalized
-                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(NormalizeConditionText)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToList();
-        }
-
-        // Secondary format:
-        // line-based content. If all lines look like continuation lines, merge them.
-        if (normalized.Contains('\n'))
-        {
-            var lines = normalized
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToList();
-
-            // Heuristic:
-            // if every line ends with punctuation, treat each line as a bullet
-            var everyLineLooksIndependent = lines.All(x =>
-                x.EndsWith('.') || x.EndsWith(';') || x.EndsWith(':'));
-
-            if (everyLineLooksIndependent)
-            {
-                return lines
-                    .Select(NormalizeConditionText)
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .ToList();
-            }
-
-            // Otherwise, treat the full text as paragraphs with internal wraps
-            return new List<string>
-        {
-            NormalizeConditionText(string.Join(" ", lines))
-        };
-        }
-
-        // Fallback:
-        // split by sentence endings followed by a space
-        var sentenceBased = System.Text.RegularExpressions.Regex
-            .Split(normalized, @"(?<=\.)\s+(?=[A-ZÁÉÍÓÚÑ])")
-            .Select(NormalizeConditionText)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .ToList();
-
-        return sentenceBased.Count > 0
-            ? sentenceBased
-            : new List<string> { NormalizeConditionText(normalized) };
-    }
-
-    private static string NormalizeConditionText(string value)
-    {
-        return System.Text.RegularExpressions.Regex
-            .Replace(value, @"\s+", " ")
-            .Trim();
-    }
+    private sealed record EditorialSection(string Title, IReadOnlyList<ProformPdfTextBlock> Blocks);
 }

@@ -1,4 +1,4 @@
-﻿namespace InstantProforms.Application.Features.Proforms.GetPagedProforms;
+namespace InstantProforms.Application.Features.Proforms.GetPagedProforms;
 
 /// <summary>
 /// Represents a paginated proform result.
@@ -15,6 +15,7 @@ public sealed record GetPagedProformsResponse(
 public sealed record GetPagedProformsItemResponse(
     Guid Id,
     string Number,
+    string Currency,
     string Status,
     string ClientName,
     DateTime IssuedAtUtc,

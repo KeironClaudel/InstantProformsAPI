@@ -45,6 +45,7 @@ public sealed class GetPagedProformsQueryHandler
             items.Select(x => new GetPagedProformsItemResponse(
                 x.Id,
                 x.Number,
+                x.Currency.ToString(),
                 x.Status.ToString(),
                 x.ClientName,
                 x.IssuedAtUtc,

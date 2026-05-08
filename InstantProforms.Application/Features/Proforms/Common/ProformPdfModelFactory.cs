@@ -1,4 +1,5 @@
-﻿using InstantProforms.Domain.Entities;
+using InstantProforms.Domain.Entities;
+using InstantProforms.Domain.Enums;
 
 namespace InstantProforms.Application.Features.Proforms.Common;
 
@@ -25,19 +26,26 @@ public static class ProformPdfModelFactory
             PrimaryColor: settings.PrimaryColor,
             SecondaryColor: settings.SecondaryColor,
             AccentColor: settings.AccentColor,
-            CurrencySymbol: settings.CurrencySymbol,
+            CurrencySymbol: proform.Currency.GetSymbol(),
             TaxLabel: settings.TaxLabel,
             TermsAndConditions: settings.TermsAndConditions,
             ProformId: proform.Id,
             Number: proform.Number,
             Status: proform.Status.ToString(),
-            TaxPercentage: proform.TaxPercentage,
-            TaxAmount: proform.TaxAmount,
             ClientName: proform.ClientName,
             ClientEmail: proform.ClientEmail,
             ClientPhone: proform.ClientPhone,
+            ClientIdentificationType: proform.ClientIdentificationType?.ToString(),
+            ClientIdentificationNumber: proform.ClientIdentificationNumber,
+            TaxPercentage: proform.TaxPercentage,
+            TaxAmount: proform.TaxAmount,
             IssuedAtUtc: proform.IssuedAtUtc,
-            Notes: proform.Notes,
+            Location: proform.Location,
+            InternalNotes: proform.InternalNotes,
+            ServiceDescription: proform.ServiceDescription,
+            ScopeOfWork: proform.ScopeOfWork,
+            ServiceConditions: proform.ServiceConditions,
+            PaymentConditions: proform.PaymentConditions,
             Subtotal: proform.Subtotal,
             Total: proform.Total,
             Items: proform.Items
