@@ -6,6 +6,6 @@ public static class LoginMappings
 {
     public static LoginCommand ToCommand(this LoginRequest request)
     {
-        return new LoginCommand(request.Email, request.Password);
+        return new LoginCommand(request.Email, request.Password, request.RememberMe);
     }
 }

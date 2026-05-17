@@ -75,7 +75,7 @@ public sealed class AuthController : ControllerBase
         var response = await _sender.Send(request.ToCommand(), cancellationToken);
 
         var csrfToken = _csrfTokenService.GenerateToken();
-        _authCookieService.AppendSessionCookies(Response, response.AccessToken, response.RefreshToken, csrfToken);
+        _authCookieService.AppendSessionCookies(Response, response.AccessToken, response.RefreshToken, csrfToken, response.IsPersistent);
 
         return Ok(new
         {
@@ -110,7 +110,7 @@ public sealed class AuthController : ControllerBase
             cancellationToken);
 
         var csrfToken = _csrfTokenService.GenerateToken();
-        _authCookieService.AppendSessionCookies(Response, response.AccessToken, response.RefreshToken, csrfToken);
+        _authCookieService.AppendSessionCookies(Response, response.AccessToken, response.RefreshToken, csrfToken, response.IsPersistent);
 
         return Ok(new { message = "Token refreshed successfully." });
     }

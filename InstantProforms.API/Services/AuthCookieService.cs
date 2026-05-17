@@ -15,41 +15,25 @@ public sealed class AuthCookieService : IAuthCookieService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public void AppendSessionCookies(HttpResponse response, string accessToken, string refreshToken, string csrfToken)
+    private int RememberMeRefreshTokenLifetimeDays =>
+        _jwtSettings.RememberMeRefreshTokenExpirationDays is > 0
+            ? _jwtSettings.RememberMeRefreshTokenExpirationDays.Value
+            : _jwtSettings.RefreshTokenExpirationDays;
+
+    public void AppendSessionCookies(HttpResponse response, string accessToken, string refreshToken, string csrfToken, bool isPersistent)
     {
-        response.Cookies.Append("accessToken", accessToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes),
-            Path = "/"
-        });
+        response.Cookies.Append("accessToken", accessToken, BuildAccessTokenCookieOptions(isPersistent));
 
-        response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTimeOffset.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
-            Path = "/"
-        });
+        response.Cookies.Append("refreshToken", refreshToken, BuildRefreshTokenCookieOptions(isPersistent));
 
-        AppendCsrfCookie(response, csrfToken);
+        AppendCsrfCookie(response, csrfToken, isPersistent);
     }
 
-    public void AppendCsrfCookie(HttpResponse response, string csrfToken)
+    public void AppendCsrfCookie(HttpResponse response, string csrfToken, bool isPersistent = false)
     {
         DeleteLegacyCsrfCookie(response);
 
-        response.Cookies.Append(CsrfCookieExtensions.CsrfCookieName, csrfToken, new CookieOptions
-        {
-            HttpOnly = false,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            IsEssential = true,
-            Path = "/"
-        });
+        response.Cookies.Append(CsrfCookieExtensions.CsrfCookieName, csrfToken, BuildCsrfCookieOptions(isPersistent));
     }
 
     public void ClearSessionCookies(HttpResponse response)
@@ -88,5 +72,53 @@ public sealed class AuthCookieService : IAuthCookieService
             IsEssential = true,
             Path = LegacyCsrfCookiePath
         });
+    }
+
+    private CookieOptions BuildAccessTokenCookieOptions(bool isPersistent)
+    {
+        var options = CreateSharedCookieOptions(httpOnly: true);
+
+        if (isPersistent)
+        {
+            options.Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes);
+        }
+
+        return options;
+    }
+
+    private CookieOptions BuildRefreshTokenCookieOptions(bool isPersistent)
+    {
+        var options = CreateSharedCookieOptions(httpOnly: true);
+
+        if (isPersistent)
+        {
+            options.Expires = DateTimeOffset.UtcNow.AddDays(RememberMeRefreshTokenLifetimeDays);
+        }
+
+        return options;
+    }
+
+    private CookieOptions BuildCsrfCookieOptions(bool isPersistent)
+    {
+        var options = CreateSharedCookieOptions(httpOnly: false);
+        options.IsEssential = true;
+
+        if (isPersistent)
+        {
+            options.Expires = DateTimeOffset.UtcNow.AddDays(RememberMeRefreshTokenLifetimeDays);
+        }
+
+        return options;
+    }
+
+    private static CookieOptions CreateSharedCookieOptions(bool httpOnly)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = httpOnly,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        };
     }
 }

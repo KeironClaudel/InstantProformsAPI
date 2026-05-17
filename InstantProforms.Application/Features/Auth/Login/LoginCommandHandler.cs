@@ -54,13 +54,20 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
         var refreshTokenHash = _tokenHashService.ComputeHash(refreshTokenValue);
+        var rememberMeRefreshTokenLifetimeDays = _jwtSettings.RememberMeRefreshTokenExpirationDays is > 0
+            ? _jwtSettings.RememberMeRefreshTokenExpirationDays.Value
+            : _jwtSettings.RefreshTokenExpirationDays;
+        var refreshTokenLifetimeDays = request.RememberMe
+            ? rememberMeRefreshTokenLifetimeDays
+            : _jwtSettings.RefreshTokenExpirationDays;
 
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
             Token = refreshTokenHash,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(refreshTokenLifetimeDays),
+            IsPersistent = request.RememberMe,
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -70,6 +77,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         return new LoginResponse(
             accessToken,
             refreshTokenValue,
+            request.RememberMe,
             user.Id,
             user.FullName,
             user.Email,

@@ -29,4 +29,9 @@ public sealed class JwtSettings
     /// Gets or sets the refresh token lifetime in days.
     /// </summary>
     public int RefreshTokenExpirationDays { get; set; }
+
+    /// <summary>
+    /// Gets or sets the refresh token lifetime in days for persistent remember-me sessions.
+    /// </summary>
+    public int? RememberMeRefreshTokenExpirationDays { get; set; }
 }

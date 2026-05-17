@@ -2,4 +2,5 @@
 
 public sealed record RefreshTokenResponse(
     string AccessToken,
-    string RefreshToken);
+    string RefreshToken,
+    bool IsPersistent);

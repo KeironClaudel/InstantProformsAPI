@@ -23,6 +23,11 @@ public sealed class RefreshToken : BaseAuditableEntity
     public DateTime ExpiresAtUtc { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this token belongs to a persistent remember-me session.
+    /// </summary>
+    public bool IsPersistent { get; set; }
+
+    /// <summary>
     /// Gets or sets the revocation date in UTC.
     /// </summary>
     public DateTime? RevokedAtUtc { get; set; }

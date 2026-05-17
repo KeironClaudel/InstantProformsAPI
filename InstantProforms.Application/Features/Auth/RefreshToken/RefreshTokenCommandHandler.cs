@@ -54,19 +54,26 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
         var newAccessToken = _jwtTokenService.GenerateAccessToken(storedToken.User);
         var newRefreshTokenValue = _jwtTokenService.GenerateRefreshToken();
         var newRefreshTokenHash = _tokenHashService.ComputeHash(newRefreshTokenValue);
+        var rememberMeRefreshTokenLifetimeDays = _jwtSettings.RememberMeRefreshTokenExpirationDays is > 0
+            ? _jwtSettings.RememberMeRefreshTokenExpirationDays.Value
+            : _jwtSettings.RefreshTokenExpirationDays;
+        var refreshTokenLifetimeDays = storedToken.IsPersistent
+            ? rememberMeRefreshTokenLifetimeDays
+            : _jwtSettings.RefreshTokenExpirationDays;
 
         var newRefreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = storedToken.UserId,
             Token = newRefreshTokenHash,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(refreshTokenLifetimeDays),
+            IsPersistent = storedToken.IsPersistent,
             CreatedAtUtc = DateTime.UtcNow
         };
 
         await _unitOfWork.RefreshTokens.AddAsync(newRefreshToken, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new RefreshTokenResponse(newAccessToken, newRefreshTokenValue);
+        return new RefreshTokenResponse(newAccessToken, newRefreshTokenValue, storedToken.IsPersistent);
     }
 }

@@ -50,13 +50,16 @@ public sealed class RefreshTokenHandlersTests
             tokenHashService.Object,
             Options.Create(new JwtSettings
             {
-                RefreshTokenExpirationDays = 7
+                RefreshTokenExpirationDays = 7,
+                RememberMeRefreshTokenExpirationDays = 30
             }));
 
-        var response = await handler.Handle(new LoginCommand("owner@example.com", "ValidPass1"), CancellationToken.None);
+        var response = await handler.Handle(new LoginCommand("owner@example.com", "ValidPass1", true), CancellationToken.None);
 
         Assert.NotNull(persistedToken);
         Assert.Equal("hashed-refresh-token", persistedToken!.Token);
+        Assert.True(persistedToken.IsPersistent);
+        Assert.True(response.IsPersistent);
         Assert.Equal("raw-refresh-token", response.RefreshToken);
     }
 
@@ -70,7 +73,8 @@ public sealed class RefreshTokenHandlersTests
             UserId = user.Id,
             User = user,
             Token = "existing-hash",
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(1)
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(1),
+            IsPersistent = true
         };
 
         RefreshToken? persistedToken = null;
@@ -100,15 +104,18 @@ public sealed class RefreshTokenHandlersTests
             tokenHashService.Object,
             Options.Create(new JwtSettings
             {
-                RefreshTokenExpirationDays = 7
+                RefreshTokenExpirationDays = 7,
+                RememberMeRefreshTokenExpirationDays = 30
             }));
 
         var response = await handler.Handle(new RefreshTokenCommand("provided-raw-token"), CancellationToken.None);
 
         Assert.NotNull(persistedToken);
         Assert.Equal("new-refresh-hash", persistedToken!.Token);
+        Assert.True(persistedToken.IsPersistent);
         Assert.NotNull(storedToken.RevokedAtUtc);
         Assert.Equal("new-raw-refresh-token", response.RefreshToken);
+        Assert.True(response.IsPersistent);
     }
 
     [Fact]
