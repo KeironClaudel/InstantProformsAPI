@@ -251,10 +251,6 @@ public sealed class ProformPdfDocument : IDocument
         {
             container.Image(_logoBytes).FitArea();
         }
-        else
-        {
-            container.AlignCenter().AlignMiddle().Text("LOGO").Bold();
-        }
     }
 
     private void ComposeMetaSection(IContainer container)
