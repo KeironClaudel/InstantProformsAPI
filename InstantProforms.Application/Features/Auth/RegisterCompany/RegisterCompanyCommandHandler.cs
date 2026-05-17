@@ -13,7 +13,6 @@ namespace InstantProforms.Application.Features.Auth.RegisterCompany;
 public sealed class RegisterCompanyCommandHandler
     : IRequestHandler<RegisterCompanyCommand, RegisterCompanyResponse>
 {
-    private const string LegacyProformPrefix = "PRO";
     private const string GenericRegistrationFailureMessage = "Unable to complete registration with the provided details.";
 
     private readonly IUnitOfWork _unitOfWork;
@@ -62,13 +61,9 @@ public sealed class RegisterCompanyCommandHandler
             throw new InvalidOperationException("The Owner role was not found.");
         }
 
-        if (!ImageFileInspector.TryGetFormat(request.LogoFile, out var format) || format is null)
-        {
-            throw new InvalidOperationException("The uploaded logo is not a supported image.");
-        }
-
         var utcNow = DateTime.UtcNow;
         var companyId = Guid.NewGuid();
+        var normalizedProformPrefix = NormalizeProformPrefix(request.ProformPrefix);
 
         var company = new Company
         {
@@ -82,29 +77,41 @@ public sealed class RegisterCompanyCommandHandler
             CreatedAtUtc = utcNow
         };
 
-        FileStorageSaveResult logoSaveResult;
-        await using (var logoStream = request.LogoFile.OpenReadStream())
-        {
-            logoSaveResult = await _fileStorageService.SaveCompanyLogoAsync(
-                companyId,
-                $"logo{format.Extension}",
-                logoStream,
-                cancellationToken);
-        }
+        StoredFile? storedLogo = null;
+        string? logoRelativePath = null;
 
-        var storedLogo = new StoredFile
+        if (request.LogoFile is not null)
         {
-            Id = Guid.NewGuid(),
-            CompanyId = companyId,
-            OriginalFileName = request.LogoFile.FileName,
-            StoredFileName = logoSaveResult.StoredFileName,
-            RelativePath = logoSaveResult.RelativePath,
-            ContentType = format.ContentType,
-            SizeBytes = request.LogoFile.Length,
-            Purpose = "company-logo",
-            IsActive = true,
-            CreatedAtUtc = utcNow
-        };
+            if (!ImageFileInspector.TryGetFormat(request.LogoFile, out var format) || format is null)
+            {
+                throw new InvalidOperationException("The uploaded logo is not a supported image.");
+            }
+
+            FileStorageSaveResult logoSaveResult;
+            await using (var logoStream = request.LogoFile.OpenReadStream())
+            {
+                logoSaveResult = await _fileStorageService.SaveCompanyLogoAsync(
+                    companyId,
+                    $"logo{format.Extension}",
+                    logoStream,
+                    cancellationToken);
+            }
+
+            logoRelativePath = logoSaveResult.RelativePath;
+            storedLogo = new StoredFile
+            {
+                Id = Guid.NewGuid(),
+                CompanyId = companyId,
+                OriginalFileName = request.LogoFile.FileName,
+                StoredFileName = logoSaveResult.StoredFileName,
+                RelativePath = logoSaveResult.RelativePath,
+                ContentType = format.ContentType,
+                SizeBytes = request.LogoFile.Length,
+                Purpose = "company-logo",
+                IsActive = true,
+                CreatedAtUtc = utcNow
+            };
+        }
 
         var companySettings = new CompanySettings
         {
@@ -117,14 +124,12 @@ public sealed class RegisterCompanyCommandHandler
             Email = request.CompanyEmail,
             Address = request.CompanyAddress,
             TermsAndConditions = request.TermsAndConditions,
-            LogoFileName = logoSaveResult.RelativePath,
-            LogoStoredFileId = storedLogo.Id,
+            LogoFileName = logoRelativePath,
+            LogoStoredFileId = storedLogo?.Id,
             PrimaryColor = request.PrimaryColor,
             SecondaryColor = request.SecondaryColor,
             AccentColor = request.AccentColor,
-            ProformPrefix = string.IsNullOrWhiteSpace(request.ProformPrefix)
-                ? LegacyProformPrefix
-                : request.ProformPrefix.Trim(),
+            ProformPrefix = normalizedProformPrefix,
             CurrencySymbol = request.CurrencySymbol,
             TaxPercentage = request.TaxPercentage,
             TaxLabel = request.TaxLabel,
@@ -143,7 +148,11 @@ public sealed class RegisterCompanyCommandHandler
             CreatedAtUtc = utcNow
         };
 
-        await _unitOfWork.StoredFiles.AddAsync(storedLogo, cancellationToken);
+        if (storedLogo is not null)
+        {
+            await _unitOfWork.StoredFiles.AddAsync(storedLogo, cancellationToken);
+        }
+
         await _unitOfWork.Companies.AddAsync(company, cancellationToken);
         await _unitOfWork.CompanySettings.AddAsync(companySettings, cancellationToken);
         await _unitOfWork.Users.AddAsync(ownerUser, cancellationToken);
@@ -153,5 +162,10 @@ public sealed class RegisterCompanyCommandHandler
             company.Id,
             ownerUser.Id,
             "Company and owner user registered successfully.");
+    }
+
+    private static string NormalizeProformPrefix(string prefix)
+    {
+        return prefix.Trim().ToUpperInvariant();
     }
 }

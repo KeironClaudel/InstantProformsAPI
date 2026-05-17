@@ -451,7 +451,7 @@ public sealed class ProformPdfDocument : IDocument
     {
         var sections = new List<EditorialSection>();
 
-        TryAddSection(sections, "Descripcion del servicio", _data.ServiceDescription);
+        TryAddSection(sections, "Descripción del servicio", _data.ServiceDescription);
         TryAddSection(sections, "Alcances del trabajo", _data.ScopeOfWork);
         TryAddSection(
             sections,

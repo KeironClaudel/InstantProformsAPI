@@ -84,7 +84,7 @@ public sealed class RegisterCompanyRequest
     /// <summary>
     /// Gets or sets the company logo file.
     /// </summary>
-    public IFormFile LogoFile { get; set; } = null!;
+    public IFormFile? LogoFile { get; set; }
 
     /// <summary>
     /// Gets or sets the owner full name.

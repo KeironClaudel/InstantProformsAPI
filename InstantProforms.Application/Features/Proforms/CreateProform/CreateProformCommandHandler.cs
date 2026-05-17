@@ -70,7 +70,12 @@ public sealed class CreateProformCommandHandler
         var latestProform = await _unitOfWork.Proforms
             .GetLatestByCompanyAsync(companyId, cancellationToken);
 
-        var nextNumber = ProformNumberGenerator.GenerateNextNumber(latestProform?.Number, utcNow.Year);
+        var prefixAnchorYear = settings.CreatedAtUtc.Year;
+        var nextNumber = ProformNumberGenerator.GenerateNextNumber(
+            latestProform?.Number,
+            settings.ProformPrefix,
+            prefixAnchorYear,
+            utcNow.Year);
         var proformId = Guid.NewGuid();
 
         var items = request.Items

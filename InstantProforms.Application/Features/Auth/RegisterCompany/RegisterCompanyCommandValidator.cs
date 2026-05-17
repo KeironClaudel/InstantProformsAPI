@@ -63,7 +63,10 @@ public sealed class RegisterCompanyCommandValidator : AbstractValidator<Register
             .MaximumLength(20);
 
         RuleFor(x => x.ProformPrefix)
-            .MaximumLength(20);
+            .NotEmpty()
+            .MaximumLength(5)
+            .Matches("^[A-Za-z]+$")
+            .WithMessage("Proform prefix must contain letters only.");
 
         RuleFor(x => x.CurrencySymbol)
             .NotEmpty()
@@ -74,19 +77,28 @@ public sealed class RegisterCompanyCommandValidator : AbstractValidator<Register
             .MaximumLength(50);
 
         RuleFor(x => x.LogoFile)
-            .NotNull()
-            .Must(file => file.Length > 0)
+            .Must(file => file is null || file.Length > 0)
             .WithMessage("Logo file is required.")
-            .Must(file => file.Length <= 2 * 1024 * 1024)
+            .Must(file => file is null || file.Length <= 2 * 1024 * 1024)
             .WithMessage("Logo file size must not exceed 2 MB.")
             .Must(file =>
             {
+                if (file is null)
+                {
+                    return true;
+                }
+
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 return extension is ".png" or ".jpg" or ".jpeg" or ".webp";
             })
             .WithMessage("Only PNG, JPG, JPEG, and WEBP logo files are allowed.")
             .Must(file =>
             {
+                if (file is null)
+                {
+                    return true;
+                }
+
                 if (!ImageFileInspector.TryGetFormat(file, out var format) || format is null)
                 {
                     return false;

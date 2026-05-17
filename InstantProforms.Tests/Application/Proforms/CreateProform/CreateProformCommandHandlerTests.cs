@@ -32,7 +32,9 @@ public sealed class CreateProformCommandHandlerTests
         var settings = new CompanySettings
         {
             CompanyId = companyId,
-            TaxPercentage = 13m
+            TaxPercentage = 13m,
+            ProformPrefix = "C",
+            CreatedAtUtc = new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc)
         };
 
         var clientsRepository = new Mock<IClientRepository>();
@@ -109,7 +111,13 @@ public sealed class CreateProformCommandHandlerTests
         Assert.Equal("Descripcion del servicio", capturedProform.ServiceDescription);
         Assert.Equal("Alcance detallado", capturedProform.ScopeOfWork);
         Assert.Equal(ProformCurrency.Colones, capturedProform.Currency);
-        Assert.Equal(ProformNumberGenerator.GenerateNextNumber(null, DateTime.UtcNow.Year), result.Number);
+        Assert.Equal(
+            ProformNumberGenerator.GenerateNextNumber(
+                null,
+                settings.ProformPrefix,
+                settings.CreatedAtUtc.Year,
+                DateTime.UtcNow.Year),
+            result.Number);
         Assert.Equal("Colones", result.Currency);
         Assert.Equal(300m, result.Subtotal);
         Assert.Equal(39m, result.TaxAmount);

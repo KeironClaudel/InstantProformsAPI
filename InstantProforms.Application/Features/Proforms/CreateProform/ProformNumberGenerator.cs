@@ -7,18 +7,19 @@ namespace InstantProforms.Application.Features.Proforms.CreateProform;
 /// </summary>
 public static partial class ProformNumberGenerator
 {
-    private const int BaseYear = 2024;
     private const int StartingSequence = 200;
 
     /// <summary>
     /// Generates the next proform number for the specified year.
     /// </summary>
     /// <param name="latestNumber">The latest proform number for the company.</param>
+    /// <param name="basePrefix">The configured prefix anchor for the company's base year.</param>
+    /// <param name="baseYear">The year in which the configured prefix applies.</param>
     /// <param name="year">The year used to generate the sequence prefix.</param>
     /// <returns>The next proform number.</returns>
-    public static string GenerateNextNumber(string? latestNumber, int year)
+    public static string GenerateNextNumber(string? latestNumber, string basePrefix, int baseYear, int year)
     {
-        var prefix = BuildYearPrefix(year);
+        var prefix = BuildYearPrefix(basePrefix, baseYear, year);
 
         if (string.IsNullOrWhiteSpace(latestNumber))
         {
@@ -36,7 +37,7 @@ public static partial class ProformNumberGenerator
         var latestYear = int.Parse(match.Groups["year"].Value);
         var latestSequence = int.Parse(match.Groups["sequence"].Value);
 
-        if (!string.Equals(latestPrefix, GetYearCode(year), StringComparison.Ordinal)
+        if (!string.Equals(latestPrefix, GetYearCode(basePrefix, baseYear, year), StringComparison.Ordinal)
             || latestYear != year)
         {
             return $"{prefix}{StartingSequence}";
@@ -45,24 +46,53 @@ public static partial class ProformNumberGenerator
         return $"{prefix}{latestSequence + 1}";
     }
 
-    private static string BuildYearPrefix(int year)
+    private static string BuildYearPrefix(string basePrefix, int baseYear, int year)
     {
-        return $"{GetYearCode(year)}{year}";
+        return $"{GetYearCode(basePrefix, baseYear, year)}{year}";
     }
 
-    private static string GetYearCode(int year)
+    private static string GetYearCode(string basePrefix, int baseYear, int year)
     {
-        var offset = Math.Max(0, year - BaseYear);
-        var code = string.Empty;
+        var normalizedPrefix = NormalizeBasePrefix(basePrefix);
+        var offset = Math.Max(0, year - baseYear);
+        var codeChars = normalizedPrefix.ToCharArray();
 
-        do
+        while (offset > 0)
         {
-            code = (char)('A' + (offset % 26)) + code;
-            offset = (offset / 26) - 1;
+            IncrementCode(codeChars);
+            offset--;
         }
-        while (offset >= 0);
 
-        return code;
+        return new string(codeChars);
+    }
+
+    private static string NormalizeBasePrefix(string basePrefix)
+    {
+        var lettersOnly = new string(basePrefix
+            .Trim()
+            .ToUpperInvariant()
+            .Where(char.IsLetter)
+            .ToArray());
+
+        return string.IsNullOrWhiteSpace(lettersOnly)
+            ? "A"
+            : lettersOnly;
+    }
+
+    private static void IncrementCode(IList<char> codeChars)
+    {
+        for (var index = codeChars.Count - 1; index >= 0; index--)
+        {
+            if (codeChars[index] < 'Z')
+            {
+                codeChars[index]++;
+                return;
+            }
+
+            codeChars[index] = 'A';
+        }
+
+        codeChars.Insert(0, 'A');
     }
 
     [GeneratedRegex(@"^(?<prefix>[A-Z]+)(?<year>\d{4})(?<sequence>\d+)$", RegexOptions.Compiled)]

@@ -23,7 +23,7 @@ public sealed record RegisterCompanyCommand(
     string CurrencySymbol,
     string TaxLabel,
     decimal TaxPercentage,
-    IFormFile LogoFile,
+    IFormFile? LogoFile,
     string OwnerFullName,
     string OwnerEmail,
     string Password) : IRequest<RegisterCompanyResponse>;
