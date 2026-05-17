@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Extensions.Options;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
@@ -73,7 +73,8 @@ public sealed class CreateProformShareLinkCommandHandler
         await _unitOfWork.ProformShareTokens.AddAsync(shareToken, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var url = $"{_proformShareSettings.PublicDownloadUrl}?token={Uri.EscapeDataString(rawToken)}";
+        var publicDownloadBaseUrl = _proformShareSettings.PublicDownloadUrl.TrimEnd('/');
+        var url = $"{publicDownloadBaseUrl}/{rawToken}";
 
         return new CreateProformShareLinkResponse(
             url,

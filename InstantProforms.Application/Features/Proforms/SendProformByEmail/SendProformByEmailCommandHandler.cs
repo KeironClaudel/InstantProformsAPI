@@ -80,6 +80,7 @@ public sealed class SendProformByEmailCommandHandler
                """;
 
         await _emailService.SendAsync(
+            companyId,
             request.ToEmail,
             subject,
             body,

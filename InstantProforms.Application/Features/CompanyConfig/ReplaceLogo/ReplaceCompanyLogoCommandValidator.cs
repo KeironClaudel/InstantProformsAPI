@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+using FluentValidation;
+using InstantProforms.Application.Common.Files;
 
 namespace InstantProforms.Application.Features.CompanyConfig.ReplaceLogo;
 
@@ -20,6 +21,16 @@ public sealed class ReplaceCompanyLogoCommandValidator : AbstractValidator<Repla
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 return ext is ".png" or ".jpg" or ".jpeg" or ".webp";
             })
-            .WithMessage("Invalid file type.");
+            .WithMessage("Invalid file type.")
+            .Must(file =>
+            {
+                if (!ImageFileInspector.TryGetFormat(file, out var format) || format is null)
+                {
+                    return false;
+                }
+
+                return ImageFileInspector.HasExpectedExtension(file.FileName, format);
+            })
+            .WithMessage("The uploaded file content does not match a supported image format.");
     }
 }

@@ -44,10 +44,14 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IProformRepository, ProformRepository>();
         services.AddScoped<IProformPdfService, QuestPdfProformPdfService>();
-        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+        services.Configure<ResendSettings>(configuration.GetSection("ResendSettings"));
+        services.Configure<SecretProtectionSettings>(configuration.GetSection("SecretProtectionSettings"));
         services.Configure<SupabaseStorageSettings>(configuration.GetSection("SupabaseStorage"));
+        services.AddHttpClient<ResendEmailService>();
         services.AddHttpClient<SupabaseFileStorageService>();
-        services.AddScoped<IEmailService, SmtpEmailService>();
+        services.AddScoped<IEmailService>(serviceProvider => serviceProvider.GetRequiredService<ResendEmailService>());
+        services.AddScoped<ISecretProtector, AesGcmSecretProtector>();
+        services.AddScoped<ISecretFingerprintService, HmacSecretFingerprintService>();
         services.AddScoped<ITokenHashService, Sha256TokenHashService>();
         services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordResetSettings"));
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();

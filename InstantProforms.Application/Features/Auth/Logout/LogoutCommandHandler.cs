@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 
 namespace InstantProforms.Application.Features.Auth.Logout;
@@ -9,21 +10,26 @@ namespace InstantProforms.Application.Features.Auth.Logout;
 public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ITokenHashService _tokenHashService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LogoutCommandHandler"/> class.
     /// </summary>
     /// <param name="unitOfWork">The unit of work.</param>
-    public LogoutCommandHandler(IUnitOfWork unitOfWork)
+    /// <param name="tokenHashService">The token hash service.</param>
+    public LogoutCommandHandler(IUnitOfWork unitOfWork, ITokenHashService tokenHashService)
     {
         _unitOfWork = unitOfWork;
+        _tokenHashService = tokenHashService;
     }
 
     /// <inheritdoc />
     public async Task Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
+        var providedTokenHash = _tokenHashService.ComputeHash(request.RefreshToken);
+
         var storedToken = await _unitOfWork.RefreshTokens
-            .GetByTokenAsync(request.RefreshToken, cancellationToken);
+            .GetByTokenHashAsync(providedTokenHash, cancellationToken);
 
         if (storedToken is not null && storedToken.RevokedAtUtc is null)
         {

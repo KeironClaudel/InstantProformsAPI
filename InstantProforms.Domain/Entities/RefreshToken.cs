@@ -13,7 +13,7 @@ public sealed class RefreshToken : BaseAuditableEntity
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// Gets or sets the token value.
+    /// Gets or sets the hashed token value.
     /// </summary>
     public string Token { get; set; } = string.Empty;
 

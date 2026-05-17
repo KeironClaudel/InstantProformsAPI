@@ -1,4 +1,5 @@
-﻿using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Files;
+using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Entities;
 using MediatR;
@@ -47,13 +48,18 @@ public sealed class ReplaceCompanyLogoCommandHandler
             await _fileStorageService.DeleteAsync(settings.LogoFileName, cancellationToken);
         }
 
+        if (!ImageFileInspector.TryGetFormat(request.LogoFile, out var format) || format is null)
+        {
+            throw new InvalidOperationException("The uploaded logo is not a supported image.");
+        }
+
         FileStorageSaveResult saveResult;
 
         await using (var stream = request.LogoFile.OpenReadStream())
         {
             saveResult = await _fileStorageService.SaveCompanyLogoAsync(
                 companyId,
-                request.LogoFile.FileName,
+                $"logo{format.Extension}",
                 stream,
                 cancellationToken);
         }
@@ -67,7 +73,7 @@ public sealed class ReplaceCompanyLogoCommandHandler
             OriginalFileName = request.LogoFile.FileName,
             StoredFileName = saveResult.StoredFileName,
             RelativePath = saveResult.RelativePath,
-            ContentType = request.LogoFile.ContentType,
+            ContentType = format.ContentType,
             SizeBytes = request.LogoFile.Length,
             Purpose = "company-logo",
             CreatedAtUtc = utcNow

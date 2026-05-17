@@ -23,7 +23,7 @@ InstantProforms API resuelve el flujo completo de una proforma dentro de una mis
 - Arquitectura por capas con separacion de responsabilidades
 - Persistencia con PostgreSQL y Entity Framework Core
 - Generacion de PDF con QuestPDF
-- Envio de correos con MailKit
+- Envio de correos con Resend
 - Almacenamiento de logos en Supabase Storage
 - Proxy autenticado de logos desde el backend
 - Swagger en ambiente de desarrollo
@@ -40,7 +40,7 @@ InstantProforms API resuelve el flujo completo de una proforma dentro de una mis
 - FluentValidation
 - JWT Bearer Authentication
 - QuestPDF
-- MailKit
+- Resend Email API
 - Swagger / Swashbuckle
 
 ## Architecture
@@ -68,7 +68,9 @@ InstantProforms/
 - .NET 8 SDK
 - PostgreSQL
 - Supabase Storage para logos de empresa
-- Credenciales SMTP validas si se usaran correos
+- Cuenta de Resend
+- Dominio o remitente verificado en Resend para salida real
+- Clave maestra de 32 bytes en Base64 para cifrar secretos por empresa
 
 ### Configuracion
 
@@ -80,11 +82,8 @@ Para desarrollo local, se recomienda usar `UserSecrets` para credenciales y valo
 dotnet user-secrets init --project InstantProforms.API
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=InstantProformsDb;Username=postgres;Password=your-password" --project InstantProforms.API
 dotnet user-secrets set "JwtSettings:SecretKey" "REPLACE_WITH_A_SECRET_KEY_OF_AT_LEAST_32_CHARACTERS" --project InstantProforms.API
-dotnet user-secrets set "SmtpSettings:Host" "smtp.gmail.com" --project InstantProforms.API
-dotnet user-secrets set "SmtpSettings:Port" "465" --project InstantProforms.API
-dotnet user-secrets set "SmtpSettings:SenderEmail" "your-email@example.com" --project InstantProforms.API
-dotnet user-secrets set "SmtpSettings:Username" "your-email@example.com" --project InstantProforms.API
-dotnet user-secrets set "SmtpSettings:Password" "your-app-password" --project InstantProforms.API
+dotnet user-secrets set "SecretProtectionSettings:MasterKey" "BASE64_ENCODED_32_BYTE_KEY" --project InstantProforms.API
+dotnet user-secrets set "ResendSettings:BaseUrl" "https://api.resend.com/" --project InstantProforms.API
 dotnet user-secrets set "SupabaseStorage:Url" "https://your-project-ref.supabase.co" --project InstantProforms.API
 dotnet user-secrets set "SupabaseStorage:ServiceRoleKey" "your-service-role-key" --project InstantProforms.API
 dotnet user-secrets set "SupabaseStorage:BucketName" "logos" --project InstantProforms.API
@@ -95,7 +94,8 @@ Ajusta como minimo:
 
 - `ConnectionStrings:DefaultConnection`
 - `JwtSettings`
-- `SmtpSettings`
+- `SecretProtectionSettings:MasterKey`
+- `ResendSettings:BaseUrl`
 - `SupabaseStorage`
 - `PasswordResetSettings`
 - `ProformShareSettings`
@@ -121,10 +121,35 @@ Configuracion relevante adicional:
 
 - `PasswordResetSettings:ResetUrl`
 - `ProformShareSettings:PublicDownloadUrl`
+- `SecretProtectionSettings:MasterKey`
+- `ResendSettings:BaseUrl`
 - `SupabaseStorage:Url`
 - `SupabaseStorage:ServiceRoleKey`
 - `SupabaseStorage:BucketName`
 - `SupabaseStorage:CompanyLogosFolder`
+
+### Correos con Resend
+
+La API envia correos mediante `POST /emails` de Resend y mantiene intactos los flujos existentes de:
+
+- recuperacion de contrasena
+- envio de proformas con PDF adjunto
+
+La configuracion de Resend ahora es por empresa y se guarda cifrada dentro de `CompanySettings`. La API nunca devuelve el `ApiKey` al frontend; solo expone si ya existe una clave configurada.
+
+Configuracion global minima:
+
+- `SecretProtectionSettings:MasterKey`
+- `ResendSettings:BaseUrl`
+
+Configuracion por empresa en `PUT /api/company-settings`:
+
+- `ResendApiKey`
+- `ResendSenderEmail`
+- `ResendSenderName`
+- `ResendReplyToEmail`
+
+Para pruebas rapidas puedes usar un remitente de sandbox como `onboarding@resend.dev`, pero para produccion cada empresa necesita un remitente o dominio valido dentro de su cuenta de Resend.
 
 ### Logos de empresa
 

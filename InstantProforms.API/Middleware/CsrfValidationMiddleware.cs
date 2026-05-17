@@ -1,4 +1,4 @@
-﻿using InstantProforms.Api.Common.Extensions;
+using InstantProforms.Api.Common.Extensions;
 
 namespace InstantProforms.Api.Middleware;
 
@@ -46,7 +46,7 @@ public sealed class CsrfValidationMiddleware
             return;
         }
 
-        if (context.User?.Identity?.IsAuthenticated != true)
+        if (!RequiresCsrfValidation(context))
         {
             await _next(context);
             return;
@@ -75,13 +75,23 @@ public sealed class CsrfValidationMiddleware
         await _next(context);
     }
 
+    private static bool RequiresCsrfValidation(HttpContext context)
+    {
+        if (context.User?.Identity?.IsAuthenticated == true)
+        {
+            return true;
+        }
+
+        return context.Request.Cookies.ContainsKey("accessToken")
+            || context.Request.Cookies.ContainsKey("refreshToken");
+    }
+
     private static bool IsIgnoredPath(string path)
     {
         return path.StartsWith("/api/auth/login", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/auth/register-company", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/auth/forgot-password", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/auth/reset-password", StringComparison.OrdinalIgnoreCase) ||
-               path.StartsWith("/api/auth/refresh", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/public/", StringComparison.OrdinalIgnoreCase);
     }
 

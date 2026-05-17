@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using InstantProforms.Application.Common.Files;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Common;
@@ -13,6 +14,7 @@ public sealed class RegisterCompanyCommandHandler
     : IRequestHandler<RegisterCompanyCommand, RegisterCompanyResponse>
 {
     private const string LegacyProformPrefix = "PRO";
+    private const string GenericRegistrationFailureMessage = "Unable to complete registration with the provided details.";
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
@@ -41,7 +43,7 @@ public sealed class RegisterCompanyCommandHandler
 
         if (slugExists)
         {
-            throw new InvalidOperationException("The company slug is already in use.");
+            throw new InvalidOperationException(GenericRegistrationFailureMessage);
         }
 
         var ownerEmailExists = await _unitOfWork.Users
@@ -49,7 +51,7 @@ public sealed class RegisterCompanyCommandHandler
 
         if (ownerEmailExists)
         {
-            throw new InvalidOperationException("The owner email is already in use.");
+            throw new InvalidOperationException(GenericRegistrationFailureMessage);
         }
 
         var ownerRole = await _unitOfWork.Roles
@@ -58,6 +60,11 @@ public sealed class RegisterCompanyCommandHandler
         if (ownerRole is null)
         {
             throw new InvalidOperationException("The Owner role was not found.");
+        }
+
+        if (!ImageFileInspector.TryGetFormat(request.LogoFile, out var format) || format is null)
+        {
+            throw new InvalidOperationException("The uploaded logo is not a supported image.");
         }
 
         var utcNow = DateTime.UtcNow;
@@ -80,7 +87,7 @@ public sealed class RegisterCompanyCommandHandler
         {
             logoSaveResult = await _fileStorageService.SaveCompanyLogoAsync(
                 companyId,
-                request.LogoFile.FileName,
+                $"logo{format.Extension}",
                 logoStream,
                 cancellationToken);
         }
@@ -92,7 +99,7 @@ public sealed class RegisterCompanyCommandHandler
             OriginalFileName = request.LogoFile.FileName,
             StoredFileName = logoSaveResult.StoredFileName,
             RelativePath = logoSaveResult.RelativePath,
-            ContentType = request.LogoFile.ContentType,
+            ContentType = format.ContentType,
             SizeBytes = request.LogoFile.Length,
             Purpose = "company-logo",
             IsActive = true,

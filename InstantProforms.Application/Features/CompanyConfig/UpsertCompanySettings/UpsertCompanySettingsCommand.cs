@@ -20,4 +20,9 @@ public sealed record UpsertCompanySettingsCommand(
     string? AccentColor,
     string ProformPrefix,
     string CurrencySymbol,
-    string TaxLabel) : IRequest<UpsertCompanySettingsResponse>;
+    string TaxLabel,
+    string? ResendApiKey,
+    bool ClearResendApiKey,
+    string? ResendSenderEmail,
+    string? ResendSenderName,
+    string? ResendReplyToEmail) : IRequest<UpsertCompanySettingsResponse>;

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Extensions.Options;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
@@ -15,6 +15,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ITokenHashService _tokenHashService;
     private readonly JwtSettings _jwtSettings;
 
     /// <summary>
@@ -23,16 +24,19 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
     /// <param name="unitOfWork">The unit of work.</param>
     /// <param name="passwordHasher">The password hasher.</param>
     /// <param name="jwtTokenService">The JWT token service.</param>
+    /// <param name="tokenHashService">The token hash service.</param>
     /// <param name="jwtSettings">The JWT configuration settings.</param>
     public LoginCommandHandler(
         IUnitOfWork unitOfWork,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
+        ITokenHashService tokenHashService,
         IOptions<JwtSettings> jwtSettings)
     {
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _tokenHashService = tokenHashService;
         _jwtSettings = jwtSettings.Value;
     }
 
@@ -49,12 +53,13 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
 
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+        var refreshTokenHash = _tokenHashService.ComputeHash(refreshTokenValue);
 
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
-            Token = refreshTokenValue,
+            Token = refreshTokenHash,
             ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
             CreatedAtUtc = DateTime.UtcNow
         };

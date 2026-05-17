@@ -74,6 +74,7 @@ public sealed class ForgotPasswordCommandHandler
                 """;
 
             await _emailService.SendAsync(
+                user.CompanyId,
                 user.Email,
                 subject,
                 body,

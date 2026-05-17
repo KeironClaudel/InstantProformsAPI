@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+using FluentValidation;
+using InstantProforms.Application.Common.Files;
 
 namespace InstantProforms.Application.Features.Auth.RegisterCompany;
 
@@ -83,7 +84,17 @@ public sealed class RegisterCompanyCommandValidator : AbstractValidator<Register
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 return extension is ".png" or ".jpg" or ".jpeg" or ".webp";
             })
-            .WithMessage("Only PNG, JPG, JPEG, and WEBP logo files are allowed.");
+            .WithMessage("Only PNG, JPG, JPEG, and WEBP logo files are allowed.")
+            .Must(file =>
+            {
+                if (!ImageFileInspector.TryGetFormat(file, out var format) || format is null)
+                {
+                    return false;
+                }
+
+                return ImageFileInspector.HasExpectedExtension(file.FileName, format);
+            })
+            .WithMessage("The uploaded logo content does not match a supported image format.");
 
         RuleFor(x => x.OwnerFullName)
             .NotEmpty()

@@ -29,6 +29,11 @@ public static class UpsertCompanySettingsMappings
             request.AccentColor,
             request.ProformPrefix,
             request.CurrencySymbol,
-            request.TaxLabel);
+            request.TaxLabel,
+            request.ResendApiKey,
+            request.ClearResendApiKey,
+            request.ResendSenderEmail,
+            request.ResendSenderName,
+            request.ResendReplyToEmail);
     }
 }

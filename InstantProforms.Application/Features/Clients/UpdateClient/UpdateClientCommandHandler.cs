@@ -1,5 +1,6 @@
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
+using InstantProforms.Application.Common.Security;
 using MediatR;
 
 namespace InstantProforms.Application.Features.Clients.UpdateClient;
@@ -11,16 +12,22 @@ public sealed class UpdateClientCommandHandler : IRequestHandler<UpdateClientCom
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ISecretProtector _secretProtector;
+    private readonly ISecretFingerprintService _secretFingerprintService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateClientCommandHandler"/> class.
     /// </summary>
     public UpdateClientCommandHandler(
         ICurrentUserService currentUserService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ISecretProtector secretProtector,
+        ISecretFingerprintService secretFingerprintService)
     {
         _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
+        _secretProtector = secretProtector;
+        _secretFingerprintService = secretFingerprintService;
     }
 
     /// <inheritdoc />
@@ -39,7 +46,7 @@ public sealed class UpdateClientCommandHandler : IRequestHandler<UpdateClientCom
             throw new InvalidOperationException("Client was not found.");
         }
 
-        var normalizedIdentificationNumber = request.IdentificationNumber?.Trim();
+        var normalizedIdentificationNumber = SensitiveValueNormalizer.NormalizeIdentificationNumber(request.IdentificationNumber);
 
         if (await _unitOfWork.Clients.IsIdentificationInUseAsync(
                 companyId,
@@ -55,7 +62,9 @@ public sealed class UpdateClientCommandHandler : IRequestHandler<UpdateClientCom
         client.Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
         client.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         client.IdentificationType = request.IdentificationType;
-        client.IdentificationNumber = string.IsNullOrWhiteSpace(normalizedIdentificationNumber) ? null : normalizedIdentificationNumber;
+        client.IdentificationNumberEncrypted = ProtectOrNull(normalizedIdentificationNumber);
+        client.IdentificationNumberHash = ComputeFingerprintOrNull(normalizedIdentificationNumber);
+        client.IdentificationNumber = normalizedIdentificationNumber;
         client.UpdatedAtUtc = DateTime.UtcNow;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -67,5 +76,19 @@ public sealed class UpdateClientCommandHandler : IRequestHandler<UpdateClientCom
             client.Phone,
             client.IdentificationType?.ToString(),
             client.IdentificationNumber);
+    }
+
+    private string? ProtectOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretProtector.Protect(value);
+    }
+
+    private string? ComputeFingerprintOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretFingerprintService.ComputeFingerprint(value);
     }
 }

@@ -62,5 +62,21 @@ public sealed class UpsertCompanySettingsCommandValidator : AbstractValidator<Up
         RuleFor(x => x.TaxLabel)
             .NotEmpty()
             .MaximumLength(50);
+
+        RuleFor(x => x.ResendApiKey)
+            .MaximumLength(500);
+
+        RuleFor(x => x.ResendSenderEmail)
+            .MaximumLength(200)
+            .EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.ResendSenderEmail));
+
+        RuleFor(x => x.ResendSenderName)
+            .MaximumLength(200);
+
+        RuleFor(x => x.ResendReplyToEmail)
+            .MaximumLength(200)
+            .EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.ResendReplyToEmail));
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Entities;
 
@@ -27,19 +27,19 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
     }
 
     /// <inheritdoc />
-    public async Task<RefreshToken?> GetByTokenWithUserAsync(string token, CancellationToken cancellationToken)
+    public async Task<RefreshToken?> GetByTokenHashWithUserAsync(string tokenHash, CancellationToken cancellationToken)
     {
         return await _context.RefreshTokens
             .Include(x => x.User)
             .ThenInclude(x => x.Role)
-            .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Token == tokenHash, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken)
+    public async Task<RefreshToken?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
     {
         return await _context.RefreshTokens
-            .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Token == tokenHash, cancellationToken);
     }
 
     /// <inheritdoc />

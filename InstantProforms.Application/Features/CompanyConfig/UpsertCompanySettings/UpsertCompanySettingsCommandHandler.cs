@@ -15,16 +15,19 @@ public sealed class UpsertCompanySettingsCommandHandler
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ISecretProtector _secretProtector;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpsertCompanySettingsCommandHandler"/> class.
     /// </summary>
     public UpsertCompanySettingsCommandHandler(
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ISecretProtector secretProtector)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _secretProtector = secretProtector;
     }
 
     /// <inheritdoc />
@@ -71,10 +74,30 @@ public sealed class UpsertCompanySettingsCommandHandler
         settings.CurrencySymbol = request.CurrencySymbol;
         settings.TaxPercentage = request.TaxPercentage;
         settings.TaxLabel = request.TaxLabel;
+        settings.ResendSenderEmailEncrypted = ProtectOrNull(request.ResendSenderEmail);
+        settings.ResendSenderNameEncrypted = ProtectOrNull(request.ResendSenderName);
+        settings.ResendReplyToEmailEncrypted = ProtectOrNull(request.ResendReplyToEmail);
+
+        if (request.ClearResendApiKey)
+        {
+            settings.ResendApiKeyEncrypted = null;
+        }
+        else if (!string.IsNullOrWhiteSpace(request.ResendApiKey))
+        {
+            settings.ResendApiKeyEncrypted = _secretProtector.Protect(request.ResendApiKey.Trim());
+        }
+
         settings.UpdatedAtUtc = DateTime.UtcNow;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new UpsertCompanySettingsResponse("Company settings saved successfully.");
+    }
+
+    private string? ProtectOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretProtector.Protect(value.Trim());
     }
 }

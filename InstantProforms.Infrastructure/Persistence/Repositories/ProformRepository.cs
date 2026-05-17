@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace InstantProforms.Infrastructure.Persistence.Repositories;
 
@@ -10,14 +11,17 @@ namespace InstantProforms.Infrastructure.Persistence.Repositories;
 public sealed class ProformRepository : IProformRepository
 {
     private readonly AppDbContext _context;
+    private readonly ISecretProtector _secretProtector;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProformRepository"/> class.
     /// </summary>
     /// <param name="context">The database context.</param>
-    public ProformRepository(AppDbContext context)
+    /// <param name="secretProtector">The reversible secret protector.</param>
+    public ProformRepository(AppDbContext context, ISecretProtector secretProtector)
     {
         _context = context;
+        _secretProtector = secretProtector;
     }
 
     /// <inheritdoc />
@@ -32,29 +36,38 @@ public sealed class ProformRepository : IProformRepository
         Guid companyId,
         CancellationToken cancellationToken)
     {
-        return await _context.Proforms
+        var proform = await _context.Proforms
             .Include(x => x.Items.OrderBy(i => i.SortOrder))
             .FirstOrDefaultAsync(
                 x => x.Id == proformsId && x.CompanyId == companyId,
                 cancellationToken);
+
+        HydrateSensitiveFields(proform);
+        return proform;
     }
 
     /// <inheritdoc />
     public async Task<Proform?> GetLatestByCompanyAsync(Guid companyId, CancellationToken cancellationToken)
     {
-        return await _context.Proforms
+        var proform = await _context.Proforms
             .Where(x => x.CompanyId == companyId)
             .OrderByDescending(x => x.CreatedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
+
+        HydrateSensitiveFields(proform);
+        return proform;
     }
 
     /// <inheritdoc />
     public async Task<Proform?> GetByIdAsync(Guid proformId, Guid companyId, CancellationToken cancellationToken)
     {
-        return await _context.Proforms
+        var proform = await _context.Proforms
             .FirstOrDefaultAsync(
                 x => x.Id == proformId && x.CompanyId == companyId,
                 cancellationToken);
+
+        HydrateSensitiveFields(proform);
+        return proform;
     }
 
     /// <inheritdoc />
@@ -76,6 +89,32 @@ public sealed class ProformRepository : IProformRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
+        foreach (var item in items)
+        {
+            HydrateSensitiveFields(item);
+        }
+
         return (items, totalCount);
+    }
+
+    private void HydrateSensitiveFields(Proform? proform)
+    {
+        if (proform is null)
+        {
+            return;
+        }
+
+        proform.ClientIdentificationNumber = ResolveSensitiveValue(
+            proform.ClientIdentificationNumberEncrypted);
+    }
+
+    private string? ResolveSensitiveValue(string? encryptedValue)
+    {
+        if (!string.IsNullOrWhiteSpace(encryptedValue))
+        {
+            return _secretProtector.Unprotect(encryptedValue);
+        }
+
+        return null;
     }
 }

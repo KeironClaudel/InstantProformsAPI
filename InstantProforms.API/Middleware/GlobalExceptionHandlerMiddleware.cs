@@ -1,6 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using FluentValidation;
+using InstantProforms.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstantProforms.Api.Middleware;
@@ -10,6 +11,29 @@ namespace InstantProforms.Api.Middleware;
 /// </summary>
 public sealed class GlobalExceptionHandlerMiddleware
 {
+    private static readonly string[] SafeInvalidOperationMessages =
+    [
+        "Authenticated company context was not found.",
+        "Authenticated user was not found.",
+        "Client was not found.",
+        "Company context not found.",
+        "Company settings not found.",
+        "Company settings were not found.",
+        "Invalid or expired password reset token.",
+        "Invalid or expired refresh token.",
+        "Invalid or expired share token.",
+        "Invalid proform status.",
+        "Invalid email or password.",
+        "Proform was not found.",
+        "The Owner role was not found.",
+        "The client identification is already registered.",
+        "The proform already has the requested status.",
+        "The selected client was not found.",
+        "The uploaded logo is not a supported image.",
+        "Unsupported client identification type.",
+        "Unsupported proform currency."
+    ];
+
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
     private readonly IHostEnvironment _environment;
@@ -90,10 +114,24 @@ public sealed class GlobalExceptionHandlerMiddleware
                 problem.Detail = "You are not authorized to access this resource.";
                 break;
 
+            case ConfigurationException:
+                problem.Title = "Configuration error";
+                problem.Status = StatusCodes.Status400BadRequest;
+                problem.Detail = exception.Message;
+                break;
+
+            case ExternalServiceException:
+                problem.Title = "External service error";
+                problem.Status = StatusCodes.Status502BadGateway;
+                problem.Detail = exception.Message;
+                break;
+
             case InvalidOperationException:
                 problem.Title = "Bad request";
                 problem.Status = StatusCodes.Status400BadRequest;
-                problem.Detail = exception.Message;
+                problem.Detail = IsSafeInvalidOperationMessage(exception.Message)
+                    ? exception.Message
+                    : "The requested operation could not be completed.";
                 break;
 
             default:
@@ -113,5 +151,15 @@ public sealed class GlobalExceptionHandlerMiddleware
         }
 
         return problem;
+    }
+
+    private static bool IsSafeInvalidOperationMessage(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return false;
+        }
+
+        return SafeInvalidOperationMessages.Contains(message, StringComparer.Ordinal);
     }
 }

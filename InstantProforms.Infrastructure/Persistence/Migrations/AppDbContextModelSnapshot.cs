@@ -38,9 +38,13 @@ namespace InstantProforms.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("IdentificationNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<string>("IdentificationNumberEncrypted")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("IdentificationNumberHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<int?>("IdentificationType")
                         .HasColumnType("integer");
@@ -64,9 +68,9 @@ namespace InstantProforms.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CompanyId", "Name");
 
-                    b.HasIndex("CompanyId", "IdentificationType", "IdentificationNumber")
+                    b.HasIndex("CompanyId", "IdentificationType", "IdentificationNumberHash")
                         .IsUnique()
-                        .HasFilter("\"IdentificationNumber\" IS NOT NULL");
+                        .HasFilter("\"IdentificationNumberHash\" IS NOT NULL");
 
                     b.ToTable("Clients", (string)null);
                 });
@@ -178,6 +182,22 @@ namespace InstantProforms.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("ResendApiKeyEncrypted")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ResendReplyToEmailEncrypted")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ResendSenderEmailEncrypted")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ResendSenderNameEncrypted")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<string>("SecondaryColor")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -261,9 +281,9 @@ namespace InstantProforms.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ClientId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ClientIdentificationNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<string>("ClientIdentificationNumberEncrypted")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<int?>("ClientIdentificationType")
                         .HasColumnType("integer");

@@ -93,6 +93,26 @@ public sealed class CompanySettings : BaseAuditableEntity
     public decimal TaxPercentage { get; set; }
 
     /// <summary>
+    /// Gets or sets the encrypted Resend API key for this company.
+    /// </summary>
+    public string? ResendApiKeyEncrypted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the encrypted Resend sender email for this company.
+    /// </summary>
+    public string? ResendSenderEmailEncrypted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the encrypted Resend sender name for this company.
+    /// </summary>
+    public string? ResendSenderNameEncrypted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the encrypted Resend reply-to email for this company.
+    /// </summary>
+    public string? ResendReplyToEmailEncrypted { get; set; }
+
+    /// <summary>
     /// Gets or sets the stored file metadata for the company logo.
     /// </summary>
     public StoredFile? LogoStoredFile { get; set; }

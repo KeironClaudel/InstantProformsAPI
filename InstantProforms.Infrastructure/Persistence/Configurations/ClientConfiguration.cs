@@ -26,16 +26,19 @@ public sealed class ClientConfiguration : IEntityTypeConfiguration<Client>
         builder.Property(x => x.Phone)
             .HasMaxLength(50);
 
-        builder.Property(x => x.IdentificationNumber)
-            .HasMaxLength(50);
+        builder.Property(x => x.IdentificationNumberEncrypted)
+            .HasMaxLength(2000);
+
+        builder.Property(x => x.IdentificationNumberHash)
+            .HasMaxLength(128);
 
         builder.Property(x => x.IsActive)
             .IsRequired();
 
         builder.HasIndex(x => new { x.CompanyId, x.Name });
 
-        builder.HasIndex(x => new { x.CompanyId, x.IdentificationType, x.IdentificationNumber })
-            .HasFilter("\"IdentificationNumber\" IS NOT NULL")
+        builder.HasIndex(x => new { x.CompanyId, x.IdentificationType, x.IdentificationNumberHash })
+            .HasFilter("\"IdentificationNumberHash\" IS NOT NULL")
             .IsUnique();
 
         builder.HasOne(x => x.Company)

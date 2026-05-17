@@ -1,4 +1,4 @@
-﻿using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Models;
 using InstantProforms.Domain.Entities;
 using Microsoft.Extensions.Options;
@@ -42,9 +42,10 @@ public sealed class JwtTokenService : IJwtTokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
     public string GenerateRefreshToken()
     {
         var randomBytes = RandomNumberGenerator.GetBytes(64);
-        return Convert.ToBase64String(randomBytes);
+        return Base64UrlEncoder.Encode(randomBytes);
     }
 }

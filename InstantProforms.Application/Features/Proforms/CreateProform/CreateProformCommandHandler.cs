@@ -1,5 +1,6 @@
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
+using InstantProforms.Application.Common.Security;
 using InstantProforms.Domain.Entities;
 using InstantProforms.Domain.Enums;
 using MediatR;
@@ -14,6 +15,7 @@ public sealed class CreateProformCommandHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ISecretProtector _secretProtector;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateProformCommandHandler"/> class.
@@ -22,10 +24,12 @@ public sealed class CreateProformCommandHandler
     /// <param name="currentUserService">The current user service.</param>
     public CreateProformCommandHandler(
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ISecretProtector secretProtector)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _secretProtector = secretProtector;
     }
 
     /// <inheritdoc />
@@ -99,7 +103,7 @@ public sealed class CreateProformCommandHandler
         var clientIdentificationType = request.ClientIdentificationType ?? selectedClient?.IdentificationType;
         var clientIdentificationNumber = string.IsNullOrWhiteSpace(request.ClientIdentificationNumber)
             ? selectedClient?.IdentificationNumber
-            : request.ClientIdentificationNumber.Trim();
+            : SensitiveValueNormalizer.NormalizeIdentificationNumber(request.ClientIdentificationNumber);
         var resolvedLocation = !string.IsNullOrWhiteSpace(request.Location)
             ? request.Location.Trim()
             : string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
@@ -117,6 +121,7 @@ public sealed class CreateProformCommandHandler
             ClientEmail = clientEmail,
             ClientPhone = clientPhone,
             ClientIdentificationType = clientIdentificationType,
+            ClientIdentificationNumberEncrypted = ProtectOrNull(clientIdentificationNumber),
             ClientIdentificationNumber = clientIdentificationNumber,
             Location = resolvedLocation,
             InternalNotes = string.IsNullOrWhiteSpace(request.InternalNotes) ? null : request.InternalNotes.Trim(),
@@ -145,5 +150,12 @@ public sealed class CreateProformCommandHandler
             proform.TaxPercentage,
             proform.TaxAmount,
             proform.Total);
+    }
+
+    private string? ProtectOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretProtector.Protect(value);
     }
 }

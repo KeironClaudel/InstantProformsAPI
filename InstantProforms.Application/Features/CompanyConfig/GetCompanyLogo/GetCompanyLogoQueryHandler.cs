@@ -1,3 +1,4 @@
+using InstantProforms.Application.Common.Files;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using MediatR;
@@ -9,16 +10,6 @@ namespace InstantProforms.Application.Features.CompanyConfig.GetCompanyLogo;
 /// </summary>
 public sealed class GetCompanyLogoQueryHandler : IRequestHandler<GetCompanyLogoQuery, GetCompanyLogoResponse?>
 {
-    private static readonly IReadOnlyDictionary<string, string> ContentTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-    {
-        [".png"] = "image/png",
-        [".jpg"] = "image/jpeg",
-        [".jpeg"] = "image/jpeg",
-        [".webp"] = "image/webp",
-        [".gif"] = "image/gif",
-        [".svg"] = "image/svg+xml"
-    };
-
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorageService _fileStorageService;
@@ -63,23 +54,14 @@ public sealed class GetCompanyLogoQueryHandler : IRequestHandler<GetCompanyLogoQ
             ? null
             : await _unitOfWork.StoredFiles.GetByIdAsync(settings.LogoStoredFileId.Value, cancellationToken);
 
-        var contentType = storedFile?.CompanyId == companyId && !string.IsNullOrWhiteSpace(storedFile.ContentType)
-            ? storedFile.ContentType
-            : GetContentType(settings.LogoFileName);
+        var contentType = ImageFileInspector.TryGetFormat(content, out var format) && format is not null
+            ? format.ContentType
+            : "application/octet-stream";
 
         var fileName = storedFile?.CompanyId == companyId && !string.IsNullOrWhiteSpace(storedFile.StoredFileName)
             ? storedFile.StoredFileName
             : Path.GetFileName(settings.LogoFileName);
 
         return new GetCompanyLogoResponse(content, contentType, fileName);
-    }
-
-    private static string GetContentType(string fileName)
-    {
-        var extension = Path.GetExtension(fileName);
-
-        return ContentTypes.TryGetValue(extension, out var contentType)
-            ? contentType
-            : "application/octet-stream";
     }
 }

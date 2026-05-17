@@ -1,5 +1,6 @@
 using InstantProforms.Domain.Common;
 using InstantProforms.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InstantProforms.Domain.Entities;
 
@@ -34,8 +35,19 @@ public sealed class Client : BaseAuditableEntity
     public ClientIdentificationType? IdentificationType { get; set; }
 
     /// <summary>
-    /// Gets or sets the client identification number.
+    /// Gets or sets the encrypted client identification number.
     /// </summary>
+    public string? IdentificationNumberEncrypted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the deterministic lookup hash for the client identification number.
+    /// </summary>
+    public string? IdentificationNumberHash { get; set; }
+
+    /// <summary>
+    /// Gets or sets the effective client identification number in memory.
+    /// </summary>
+    [NotMapped]
     public string? IdentificationNumber { get; set; }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Extensions.Options;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
@@ -14,6 +14,7 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ITokenHashService _tokenHashService;
     private readonly JwtSettings _jwtSettings;
 
     /// <summary>
@@ -21,22 +22,27 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
     /// </summary>
     /// <param name="unitOfWork">The unit of work.</param>
     /// <param name="jwtTokenService">The JWT token service.</param>
+    /// <param name="tokenHashService">The token hash service.</param>
     /// <param name="jwtSettings">The JWT configuration settings.</param>
     public RefreshTokenCommandHandler(
         IUnitOfWork unitOfWork,
         IJwtTokenService jwtTokenService,
+        ITokenHashService tokenHashService,
         IOptions<JwtSettings> jwtSettings)
     {
         _unitOfWork = unitOfWork;
         _jwtTokenService = jwtTokenService;
+        _tokenHashService = tokenHashService;
         _jwtSettings = jwtSettings.Value;
     }
 
     /// <inheritdoc />
     public async Task<RefreshTokenResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
+        var providedTokenHash = _tokenHashService.ComputeHash(request.RefreshToken);
+
         var storedToken = await _unitOfWork.RefreshTokens
-            .GetByTokenWithUserAsync(request.RefreshToken, cancellationToken);
+            .GetByTokenHashWithUserAsync(providedTokenHash, cancellationToken);
 
         if (storedToken is null || !storedToken.IsActive || !storedToken.User.IsActive)
         {
@@ -47,12 +53,13 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
 
         var newAccessToken = _jwtTokenService.GenerateAccessToken(storedToken.User);
         var newRefreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+        var newRefreshTokenHash = _tokenHashService.ComputeHash(newRefreshTokenValue);
 
         var newRefreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = storedToken.UserId,
-            Token = newRefreshTokenValue,
+            Token = newRefreshTokenHash,
             ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
             CreatedAtUtc = DateTime.UtcNow
         };

@@ -18,4 +18,9 @@ public sealed record UpsertCompanySettingsRequest(
     string ProformPrefix,
     decimal TaxPercentage,
     string CurrencySymbol,
-    string TaxLabel);
+    string TaxLabel,
+    string? ResendApiKey,
+    bool ClearResendApiKey,
+    string? ResendSenderEmail,
+    string? ResendSenderName,
+    string? ResendReplyToEmail);

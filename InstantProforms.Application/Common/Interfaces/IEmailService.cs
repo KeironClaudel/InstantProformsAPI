@@ -8,6 +8,7 @@ public interface IEmailService
     /// <summary>
     /// Sends an email with an optional PDF attachment.
     /// </summary>
+    /// <param name="companyId">The owning company identifier.</param>
     /// <param name="to">The destination email address.</param>
     /// <param name="subject">The email subject.</param>
     /// <param name="body">The email body.</param>
@@ -16,6 +17,7 @@ public interface IEmailService
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task SendAsync(
+        Guid companyId,
         string to,
         string subject,
         string body,

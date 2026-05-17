@@ -1,5 +1,6 @@
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
+using InstantProforms.Application.Common.Security;
 using InstantProforms.Domain.Entities;
 using MediatR;
 
@@ -12,16 +13,22 @@ public sealed class CreateClientCommandHandler : IRequestHandler<CreateClientCom
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ISecretProtector _secretProtector;
+    private readonly ISecretFingerprintService _secretFingerprintService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateClientCommandHandler"/> class.
     /// </summary>
     public CreateClientCommandHandler(
         ICurrentUserService currentUserService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ISecretProtector secretProtector,
+        ISecretFingerprintService secretFingerprintService)
     {
         _currentUserService = currentUserService;
         _unitOfWork = unitOfWork;
+        _secretProtector = secretProtector;
+        _secretFingerprintService = secretFingerprintService;
     }
 
     /// <inheritdoc />
@@ -33,7 +40,7 @@ public sealed class CreateClientCommandHandler : IRequestHandler<CreateClientCom
         }
 
         var companyId = _currentUserService.CompanyId.Value;
-        var normalizedIdentificationNumber = request.IdentificationNumber?.Trim();
+        var normalizedIdentificationNumber = SensitiveValueNormalizer.NormalizeIdentificationNumber(request.IdentificationNumber);
 
         if (await _unitOfWork.Clients.IsIdentificationInUseAsync(
                 companyId,
@@ -54,7 +61,9 @@ public sealed class CreateClientCommandHandler : IRequestHandler<CreateClientCom
             Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
             Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
             IdentificationType = request.IdentificationType,
-            IdentificationNumber = string.IsNullOrWhiteSpace(normalizedIdentificationNumber) ? null : normalizedIdentificationNumber,
+            IdentificationNumberEncrypted = ProtectOrNull(normalizedIdentificationNumber),
+            IdentificationNumberHash = ComputeFingerprintOrNull(normalizedIdentificationNumber),
+            IdentificationNumber = normalizedIdentificationNumber,
             IsActive = true,
             CreatedAtUtc = utcNow
         };
@@ -69,5 +78,19 @@ public sealed class CreateClientCommandHandler : IRequestHandler<CreateClientCom
             client.Phone,
             client.IdentificationType?.ToString(),
             client.IdentificationNumber);
+    }
+
+    private string? ProtectOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretProtector.Protect(value);
+    }
+
+    private string? ComputeFingerprintOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretFingerprintService.ComputeFingerprint(value);
     }
 }

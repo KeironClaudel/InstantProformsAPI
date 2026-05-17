@@ -19,4 +19,9 @@ public sealed record GetCompanySettingsResponse(
     string ProformPrefix,
     decimal TaxPercentage,
     string CurrencySymbol,
-    string TaxLabel);
+    string TaxLabel,
+    bool HasResendApiKeyConfigured,
+    bool IsResendEmailDeliveryConfigured,
+    string? ResendSenderEmail,
+    string? ResendSenderName,
+    string? ResendReplyToEmail);

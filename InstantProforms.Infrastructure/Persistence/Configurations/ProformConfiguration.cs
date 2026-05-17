@@ -36,8 +36,8 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
         builder.Property(x => x.ClientPhone)
             .HasMaxLength(50);
 
-        builder.Property(x => x.ClientIdentificationNumber)
-            .HasMaxLength(50);
+        builder.Property(x => x.ClientIdentificationNumberEncrypted)
+            .HasMaxLength(2000);
 
         builder.Property(x => x.Location)
             .HasMaxLength(1000);

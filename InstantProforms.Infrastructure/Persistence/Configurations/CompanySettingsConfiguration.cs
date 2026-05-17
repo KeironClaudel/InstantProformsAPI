@@ -62,6 +62,18 @@ public sealed class CompanySettingsConfiguration : IEntityTypeConfiguration<Comp
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(x => x.ResendApiKeyEncrypted)
+            .HasMaxLength(2000);
+
+        builder.Property(x => x.ResendSenderEmailEncrypted)
+            .HasMaxLength(2000);
+
+        builder.Property(x => x.ResendSenderNameEncrypted)
+            .HasMaxLength(2000);
+
+        builder.Property(x => x.ResendReplyToEmailEncrypted)
+            .HasMaxLength(2000);
+
         builder.HasIndex(x => x.CompanyId)
             .IsUnique();
 

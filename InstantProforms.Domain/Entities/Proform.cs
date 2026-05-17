@@ -1,5 +1,6 @@
-﻿using InstantProforms.Domain.Common;
+using InstantProforms.Domain.Common;
 using InstantProforms.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InstantProforms.Domain.Entities;
 
@@ -54,8 +55,14 @@ public sealed class Proform : BaseAuditableEntity
     public ClientIdentificationType? ClientIdentificationType { get; set; }
 
     /// <summary>
-    /// Gets or sets the client identification number snapshot.
+    /// Gets or sets the encrypted client identification number snapshot.
     /// </summary>
+    public string? ClientIdentificationNumberEncrypted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the effective client identification number in memory.
+    /// </summary>
+    [NotMapped]
     public string? ClientIdentificationNumber { get; set; }
 
     /// <summary>
@@ -122,6 +129,7 @@ public sealed class Proform : BaseAuditableEntity
     /// Gets or sets the tax amount applied to the proform.
     /// </summary>
     public decimal TaxAmount { get; set; }
+
     /// <summary>
     /// Gets or sets the share tokens issued for this proform.
     /// </summary>

@@ -21,4 +21,8 @@
 		<ProjectReference Include="..\InstantProforms.Infrastructure\InstantProforms.Infrastructure.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="wwwroot\" />
+	</ItemGroup>
+
 </Project>

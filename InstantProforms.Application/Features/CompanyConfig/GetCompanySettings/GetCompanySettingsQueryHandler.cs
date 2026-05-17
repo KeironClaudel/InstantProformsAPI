@@ -13,6 +13,7 @@ public sealed class GetCompanySettingsQueryHandler
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly ISecretProtector _secretProtector;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetCompanySettingsQueryHandler"/> class.
@@ -20,11 +21,13 @@ public sealed class GetCompanySettingsQueryHandler
     public GetCompanySettingsQueryHandler(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        ISecretProtector secretProtector)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _fileStorageService = fileStorageService;
+        _secretProtector = secretProtector;
     }
 
     /// <inheritdoc />
@@ -61,6 +64,19 @@ public sealed class GetCompanySettingsQueryHandler
             settings.ProformPrefix,
             settings.TaxPercentage,
             settings.CurrencySymbol,
-            settings.TaxLabel);
+            settings.TaxLabel,
+            !string.IsNullOrWhiteSpace(settings.ResendApiKeyEncrypted),
+            !string.IsNullOrWhiteSpace(settings.ResendApiKeyEncrypted)
+                && !string.IsNullOrWhiteSpace(settings.ResendSenderEmailEncrypted),
+            UnprotectOrNull(settings.ResendSenderEmailEncrypted),
+            UnprotectOrNull(settings.ResendSenderNameEncrypted),
+            UnprotectOrNull(settings.ResendReplyToEmailEncrypted));
+    }
+
+    private string? UnprotectOrNull(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : _secretProtector.Unprotect(value);
     }
 }

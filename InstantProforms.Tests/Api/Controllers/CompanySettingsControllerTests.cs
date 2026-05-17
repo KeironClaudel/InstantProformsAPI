@@ -34,7 +34,12 @@ public sealed class CompanySettingsControllerTests
             ProformPrefix: "PRO",
             TaxPercentage: 13m,
             CurrencySymbol: "$",
-            TaxLabel: "IVA");
+            TaxLabel: "IVA",
+            HasResendApiKeyConfigured: true,
+            IsResendEmailDeliveryConfigured: true,
+            ResendSenderEmail: "noreply@example.com",
+            ResendSenderName: "Instant Proforms",
+            ResendReplyToEmail: "support@example.com");
 
         var sender = new Mock<ISender>(MockBehavior.Strict);
         sender

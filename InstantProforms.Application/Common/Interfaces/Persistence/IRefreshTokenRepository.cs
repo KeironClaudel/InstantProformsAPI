@@ -1,4 +1,4 @@
-﻿using InstantProforms.Domain.Entities;
+using InstantProforms.Domain.Entities;
 
 namespace InstantProforms.Application.Common.Interfaces.Persistence;
 
@@ -16,20 +16,20 @@ public interface IRefreshTokenRepository
     Task AddAsync(RefreshToken refreshToken, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets a refresh token by its token value, including the related user and role.
+    /// Gets a refresh token by its hashed token value, including the related user and role.
     /// </summary>
-    /// <param name="token">The refresh token value.</param>
+    /// <param name="tokenHash">The hashed refresh token value.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The matching refresh token if found; otherwise, <c>null</c>.</returns>
-    Task<RefreshToken?> GetByTokenWithUserAsync(string token, CancellationToken cancellationToken);
+    Task<RefreshToken?> GetByTokenHashWithUserAsync(string tokenHash, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets a refresh token by its token value.
+    /// Gets a refresh token by its hashed token value.
     /// </summary>
-    /// <param name="token">The refresh token value.</param>
+    /// <param name="tokenHash">The hashed refresh token value.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The matching refresh token if found; otherwise, <c>null</c>.</returns>
-    Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken);
+    Task<RefreshToken?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets active refresh tokens by user identifier.

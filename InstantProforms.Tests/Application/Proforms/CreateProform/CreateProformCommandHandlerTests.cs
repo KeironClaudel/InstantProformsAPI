@@ -84,7 +84,15 @@ public sealed class CreateProformCommandHandlerTests
                 new CreateProformItemModel("Diseno y desarrollo", 2m, 150m)
             });
 
-        var handler = new CreateProformCommandHandler(unitOfWork.Object, currentUserService.Object);
+        var secretProtector = new Mock<ISecretProtector>();
+        secretProtector
+            .Setup(x => x.Protect(It.IsAny<string>()))
+            .Returns<string>(value => $"protected::{value}");
+
+        var handler = new CreateProformCommandHandler(
+            unitOfWork.Object,
+            currentUserService.Object,
+            secretProtector.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -95,6 +103,7 @@ public sealed class CreateProformCommandHandlerTests
         Assert.Equal("2222-3333", capturedProform.ClientPhone);
         Assert.Equal(ClientIdentificationType.PhysicalId, capturedProform.ClientIdentificationType);
         Assert.Equal("1-2345-6789", capturedProform.ClientIdentificationNumber);
+        Assert.Equal("protected::1-2345-6789", capturedProform.ClientIdentificationNumberEncrypted);
         Assert.Equal("Ubicacion legacy", capturedProform.Location);
         Assert.Equal("Nota interna", capturedProform.InternalNotes);
         Assert.Equal("Descripcion del servicio", capturedProform.ServiceDescription);
