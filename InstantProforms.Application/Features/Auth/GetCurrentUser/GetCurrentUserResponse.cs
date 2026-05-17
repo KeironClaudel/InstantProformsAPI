@@ -5,4 +5,5 @@ public sealed record GetCurrentUserResponse(
     string FullName,
     string Email,
     string Role,
-    Guid CompanyId);
+    Guid CompanyId,
+    bool IsPlatformAdmin);

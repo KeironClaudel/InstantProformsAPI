@@ -1,9 +1,11 @@
+using InstantProforms.Api.Authorization;
 using InstantProforms.Api.Middleware;
 using InstantProforms.Api.Services;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Models;
 using InstantProforms.Application.DependencyInjection;
 using InstantProforms.Infrastructure.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
@@ -119,11 +121,18 @@ builder.Services.AddScoped<IAuthCookieService, AuthCookieService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // AUTHENTICATION & AUTHORIZATION
+builder.Services.AddScoped<IAuthorizationHandler, PlatformAdminRequirementHandler>();
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
+
+    options.AddPolicy("PlatformAdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new PlatformAdminRequirement());
+    });
 });
 
 builder.Services.AddProblemDetails();

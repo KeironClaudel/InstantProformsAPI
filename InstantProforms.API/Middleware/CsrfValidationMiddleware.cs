@@ -89,7 +89,6 @@ public sealed class CsrfValidationMiddleware
     private static bool IsIgnoredPath(string path)
     {
         return path.StartsWith("/api/auth/login", StringComparison.OrdinalIgnoreCase) ||
-               path.StartsWith("/api/auth/register-company", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/auth/forgot-password", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/auth/reset-password", StringComparison.OrdinalIgnoreCase) ||
                path.StartsWith("/api/public/", StringComparison.OrdinalIgnoreCase);

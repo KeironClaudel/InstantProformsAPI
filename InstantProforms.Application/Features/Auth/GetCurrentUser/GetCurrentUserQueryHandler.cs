@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using InstantProforms.Application.Common.Interfaces.Persistence;
+using InstantProforms.Application.Common.Interfaces;
 
 namespace InstantProforms.Application.Features.Auth.GetCurrentUser;
 
@@ -9,14 +10,18 @@ namespace InstantProforms.Application.Features.Auth.GetCurrentUser;
 public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, GetCurrentUserResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IPlatformAdminAccessService _platformAdminAccessService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetCurrentUserQueryHandler"/> class.
     /// </summary>
     /// <param name="unitOfWork">The unit of work.</param>
-    public GetCurrentUserQueryHandler(IUnitOfWork unitOfWork)
+    public GetCurrentUserQueryHandler(
+        IUnitOfWork unitOfWork,
+        IPlatformAdminAccessService platformAdminAccessService)
     {
         _unitOfWork = unitOfWork;
+        _platformAdminAccessService = platformAdminAccessService;
     }
 
     /// <inheritdoc />
@@ -35,6 +40,7 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
             user.FullName,
             user.Email,
             user.Role.Name,
-            user.CompanyId);
+            user.CompanyId,
+            _platformAdminAccessService.IsPlatformAdmin(user.Email));
     }
 }

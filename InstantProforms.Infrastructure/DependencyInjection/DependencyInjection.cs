@@ -32,9 +32,11 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+        services.Configure<PlatformAdminSettings>(configuration.GetSection("PlatformAdminSettings"));
 
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IPlatformAdminAccessService, PlatformAdminAccessService>();
 
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IClientRepository, ClientRepository>();

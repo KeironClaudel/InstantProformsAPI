@@ -1,4 +1,5 @@
 using InstantProforms.Api.Contracts.Auth;
+using InstantProforms.Api.Authorization;
 using InstantProforms.Api.Services;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Features.Auth.ForgotPassword;
@@ -25,15 +26,18 @@ public sealed class AuthController : ControllerBase
     private readonly ISender _sender;
     private readonly IAuthCookieService _authCookieService;
     private readonly ICsrfTokenService _csrfTokenService;
+    private readonly IPlatformAdminAccessService _platformAdminAccessService;
 
     public AuthController(
         ISender sender,
         ICsrfTokenService csrfTokenService,
-        IAuthCookieService authCookieService)
+        IAuthCookieService authCookieService,
+        IPlatformAdminAccessService platformAdminAccessService)
     {
         _sender = sender;
         _authCookieService = authCookieService;
         _csrfTokenService = csrfTokenService;
+        _platformAdminAccessService = platformAdminAccessService;
     }
 
     /// <summary>
@@ -44,7 +48,7 @@ public sealed class AuthController : ControllerBase
     /// <returns>The result of the registration process, including the new company and user identifiers.</returns>
     [EnableRateLimiting("auth-strict")]
     [HttpPost("register-company")]
-    [AllowAnonymous]
+    [Authorize(Policy = "PlatformAdminOnly")]
     [ProducesResponseType(typeof(RegisterCompanyResponse), StatusCodes.Status201Created)]
     public async Task<ActionResult<RegisterCompanyResponse>> RegisterCompany(
         [FromForm] RegisterCompanyRequest request,
@@ -79,7 +83,8 @@ public sealed class AuthController : ControllerBase
             response.FullName,
             response.Email,
             response.Role,
-            response.CompanyId
+            response.CompanyId,
+            IsPlatformAdmin = _platformAdminAccessService.IsPlatformAdmin(response.Email)
         });
     }
 

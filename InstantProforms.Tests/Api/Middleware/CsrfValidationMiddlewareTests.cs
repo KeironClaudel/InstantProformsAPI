@@ -52,4 +52,26 @@ public sealed class CsrfValidationMiddlewareTests
         Assert.True(nextCalled);
         Assert.Equal(StatusCodes.Status204NoContent, context.Response.StatusCode);
     }
+
+    [Fact]
+    public async Task InvokeAsync_BlocksRegisterCompany_WhenSessionCookieExistsButCsrfHeaderIsMissing()
+    {
+        var nextCalled = false;
+        var middleware = new CsrfValidationMiddleware(context =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+
+        var context = new DefaultHttpContext();
+        context.Request.Method = HttpMethods.Post;
+        context.Request.Path = "/api/auth/register-company";
+        context.Request.Headers.Cookie = "accessToken=demo-access-token; XSRF-TOKEN=csrf-cookie-token";
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(nextCalled);
+        Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+    }
 }
