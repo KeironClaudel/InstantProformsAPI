@@ -1,6 +1,7 @@
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Entities;
+using InstantProforms.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace InstantProforms.Infrastructure.Persistence.Repositories;
@@ -75,16 +76,24 @@ public sealed class ProformRepository : IProformRepository
         Guid companyId,
         int page,
         int pageSize,
+        string? clientName,
+        ProformStatus? status,
+        DateTime? issuedFromUtc,
+        DateTime? issuedToUtc,
         CancellationToken cancellationToken)
     {
-        var query = _context.Proforms
-            .Where(x => x.CompanyId == companyId)
-            .OrderByDescending(x => x.CreatedAtUtc)
+        var query = BuildFilteredQuery(
+                companyId,
+                clientName,
+                status,
+                issuedFromUtc,
+                issuedToUtc)
             .AsNoTracking();
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
+            .OrderByDescending(x => x.CreatedAtUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -95,6 +104,40 @@ public sealed class ProformRepository : IProformRepository
         }
 
         return (items, totalCount);
+    }
+
+    private IQueryable<Proform> BuildFilteredQuery(
+        Guid companyId,
+        string? clientName,
+        ProformStatus? status,
+        DateTime? issuedFromUtc,
+        DateTime? issuedToUtc)
+    {
+        var query = _context.Proforms
+            .Where(x => x.CompanyId == companyId);
+
+        if (!string.IsNullOrWhiteSpace(clientName))
+        {
+            var normalizedClientName = clientName.Trim().ToLowerInvariant();
+            query = query.Where(x => x.ClientName.ToLower().Contains(normalizedClientName));
+        }
+
+        if (status is not null)
+        {
+            query = query.Where(x => x.Status == status.Value);
+        }
+
+        if (issuedFromUtc is not null)
+        {
+            query = query.Where(x => x.IssuedAtUtc >= issuedFromUtc.Value);
+        }
+
+        if (issuedToUtc is not null)
+        {
+            query = query.Where(x => x.IssuedAtUtc <= issuedToUtc.Value);
+        }
+
+        return query;
     }
 
     private void HydrateSensitiveFields(Proform? proform)

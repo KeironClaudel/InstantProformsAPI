@@ -1,16 +1,17 @@
-﻿using InstantProforms.Api.Contracts.Proforms;
+using InstantProforms.Api.Contracts.Proforms;
 using InstantProforms.Application.Features.Proforms.CreateProform;
+using InstantProforms.Application.Features.Proforms.CreateProformShareLink;
+using InstantProforms.Application.Features.Proforms.DownloadProformPdf;
+using InstantProforms.Application.Features.Proforms.GetActiveProformShareLinks;
 using InstantProforms.Application.Features.Proforms.GetPagedProforms;
 using InstantProforms.Application.Features.Proforms.GetProformById;
+using InstantProforms.Application.Features.Proforms.RevokeProformShareLink;
+using InstantProforms.Application.Features.Proforms.SendProformByEmail;
+using InstantProforms.Application.Features.Proforms.UpdateProformStatus;
+using InstantProforms.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using InstantProforms.Application.Features.Proforms.UpdateProformStatus;
-using InstantProforms.Application.Features.Proforms.DownloadProformPdf;
-using InstantProforms.Application.Features.Proforms.SendProformByEmail;
-using InstantProforms.Application.Features.Proforms.CreateProformShareLink;
-using InstantProforms.Application.Features.Proforms.GetActiveProformShareLinks;
-using InstantProforms.Application.Features.Proforms.RevokeProformShareLink;
 
 namespace InstantProforms.Api.Controllers;
 
@@ -70,6 +71,10 @@ public sealed class ProformsController : ControllerBase
     /// </summary>
     /// <param name="page">The page number.</param>
     /// <param name="pageSize">The page size.</param>
+    /// <param name="clientName">The optional client name filter.</param>
+    /// <param name="status">The optional status filter.</param>
+    /// <param name="fromDate">The optional issue date lower bound.</param>
+    /// <param name="toDate">The optional issue date upper bound.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A paginated list of Proforms.</returns>
     [HttpGet]
@@ -77,10 +82,14 @@ public sealed class ProformsController : ControllerBase
     public async Task<ActionResult<GetPagedProformsResponse>> GetPaged(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
+        [FromQuery] string? clientName = null,
+        [FromQuery] ProformStatus? status = null,
+        [FromQuery] DateOnly? fromDate = null,
+        [FromQuery] DateOnly? toDate = null,
         CancellationToken cancellationToken = default)
     {
         var response = await _sender.Send(
-            new GetPagedProformsQuery(page, pageSize),
+            new GetPagedProformsQuery(page, pageSize, clientName, status, fromDate, toDate),
             cancellationToken);
 
         return Ok(response);

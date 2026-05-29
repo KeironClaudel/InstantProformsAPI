@@ -34,11 +34,18 @@ public sealed class GetPagedProformsQueryHandler
             throw new InvalidOperationException("Authenticated company context was not found.");
         }
 
+        var issuedFromUtc = request.FromDate?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var issuedToUtc = request.ToDate?.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+
         var (items, totalCount) = await _unitOfWork.Proforms
             .GetPagedAsync(
                 _currentUserService.CompanyId.Value,
                 request.Page,
                 request.PageSize,
+                request.ClientName,
+                request.Status,
+                issuedFromUtc,
+                issuedToUtc,
                 cancellationToken);
 
         return new GetPagedProformsResponse(

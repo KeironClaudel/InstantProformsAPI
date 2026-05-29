@@ -72,6 +72,8 @@ public sealed class ProformConfiguration : IEntityTypeConfiguration<Proform>
         builder.HasIndex(x => new { x.CompanyId, x.Number })
             .IsUnique();
 
+        builder.HasIndex(x => new { x.CompanyId, x.CreatedAtUtc });
+
         builder.HasOne(x => x.Company)
             .WithMany()
             .HasForeignKey(x => x.CompanyId)

@@ -1,4 +1,5 @@
-﻿using InstantProforms.Domain.Entities;
+using InstantProforms.Domain.Entities;
+using InstantProforms.Domain.Enums;
 
 namespace InstantProforms.Application.Common.Interfaces.Persistence;
 
@@ -46,11 +47,19 @@ public interface IProformRepository
     /// <param name="companyId">The company identifier.</param>
     /// <param name="page">The page number.</param>
     /// <param name="pageSize">The page size.</param>
+    /// <param name="clientName">Optional client name filter.</param>
+    /// <param name="status">Optional status filter.</param>
+    /// <param name="issuedFromUtc">Optional issued-at lower bound in UTC.</param>
+    /// <param name="issuedToUtc">Optional issued-at upper bound in UTC.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A tuple containing items and total count.</returns>
     Task<(IReadOnlyList<Proform> Items, int TotalCount)> GetPagedAsync(
         Guid companyId,
         int page,
         int pageSize,
+        string? clientName,
+        ProformStatus? status,
+        DateTime? issuedFromUtc,
+        DateTime? issuedToUtc,
         CancellationToken cancellationToken);
 }
