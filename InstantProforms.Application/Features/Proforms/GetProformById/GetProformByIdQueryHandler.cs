@@ -1,4 +1,4 @@
-﻿using InstantProforms.Application.Common.Interfaces;
+using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using MediatR;
 
@@ -39,7 +39,7 @@ public sealed class GetProformByIdQueryHandler
 
         if (proform is null)
         {
-            throw new InvalidOperationException("Proform was not found.");
+            throw new InvalidOperationException("Quotation was not found.");
         }
 
         return new GetProformByIdResponse(

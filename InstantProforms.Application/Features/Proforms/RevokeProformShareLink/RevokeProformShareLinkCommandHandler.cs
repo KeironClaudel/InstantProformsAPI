@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 
@@ -39,7 +39,7 @@ public sealed class RevokeProformShareLinkCommandHandler
 
         if (proform is null)
         {
-            throw new InvalidOperationException("Proform was not found.");
+            throw new InvalidOperationException("Quotation was not found.");
         }
 
         var shareToken = await _unitOfWork.ProformShareTokens
@@ -55,6 +55,6 @@ public sealed class RevokeProformShareLinkCommandHandler
 
         return new RevokeProformShareLinkResponse(
             shareToken.Id,
-            "Proform share link revoked successfully.");
+            "Quotation share link revoked successfully.");
     }
 }

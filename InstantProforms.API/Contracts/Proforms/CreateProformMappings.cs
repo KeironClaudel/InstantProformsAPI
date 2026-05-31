@@ -65,6 +65,6 @@ public static class CreateProformMappings
             return parsed;
         }
 
-        throw new InvalidOperationException("Unsupported proform currency.");
+        throw new InvalidOperationException("Unsupported quotation currency.");
     }
 }

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Application.Features.Proforms.Common;
@@ -45,7 +45,7 @@ public sealed class DownloadProformPdfQueryHandler
 
         if (proform is null)
         {
-            throw new InvalidOperationException("Proform was not found.");
+            throw new InvalidOperationException("Quotation was not found.");
         }
 
         var settings = await _unitOfWork.CompanySettings

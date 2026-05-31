@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Domain.Enums;
@@ -42,12 +42,12 @@ public sealed class UpdateProformStatusCommandHandler
 
         if (proform is null)
         {
-            throw new InvalidOperationException("Proform was not found.");
+            throw new InvalidOperationException("Quotation was not found.");
         }
 
         if (!Enum.TryParse<ProformStatus>(request.Status, true, out var newStatus))
         {
-            throw new InvalidOperationException("Invalid proform status.");
+            throw new InvalidOperationException("Invalid quotation status.");
         }
 
         ValidateStatusTransition(proform.Status, newStatus);
@@ -60,14 +60,14 @@ public sealed class UpdateProformStatusCommandHandler
         return new UpdateProformStatusResponse(
             proform.Id,
             proform.Status.ToString(),
-            "Proform status updated successfully.");
+            "Quotation status updated successfully.");
     }
 
     private static void ValidateStatusTransition(ProformStatus currentStatus, ProformStatus newStatus)
     {
         if (currentStatus == newStatus)
         {
-            throw new InvalidOperationException("The proform already has the requested status.");
+            throw new InvalidOperationException("The quotation already has the requested status.");
         }
     }
 }

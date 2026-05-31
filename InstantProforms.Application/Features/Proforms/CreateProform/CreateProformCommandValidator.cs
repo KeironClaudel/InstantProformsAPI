@@ -59,7 +59,7 @@ public sealed class CreateProformCommandValidator : AbstractValidator<CreateProf
 
         RuleFor(x => x.Items)
             .NotEmpty()
-            .WithMessage("At least one proforms item is required.");
+            .WithMessage("At least one quotation line item is required.");
 
         RuleForEach(x => x.Items)
             .SetValidator(new CreateProformItemModelValidator());

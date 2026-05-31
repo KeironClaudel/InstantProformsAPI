@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using InstantProforms.Application.Common.Interfaces;
 using InstantProforms.Application.Common.Interfaces.Persistence;
 using InstantProforms.Application.Features.Proforms.Common;
@@ -49,7 +49,7 @@ public sealed class SendProformByEmailCommandHandler
 
         if (proform is null)
         {
-            throw new InvalidOperationException("Proform was not found.");
+            throw new InvalidOperationException("Quotation was not found.");
         }
 
         var settings = await _unitOfWork.CompanySettings
@@ -64,19 +64,19 @@ public sealed class SendProformByEmailCommandHandler
         var pdfContent = await _proformPdfService.GenerateAsync(pdfModel, cancellationToken);
 
         var subject = string.IsNullOrWhiteSpace(request.Subject)
-            ? $"Proform {proform.Number}"
+            ? $"Quotation {proform.Number}"
             : request.Subject.Trim();
 
         var body = string.IsNullOrWhiteSpace(request.Message)
             ? $"""
                <p>Hello,</p>
-               <p>Please find attached proform <strong>{proform.Number}</strong>.</p>
+               <p>Please find attached quotation <strong>{proform.Number}</strong>.</p>
                <p>Thank you.</p>
                """
             : $"""
                <p>{System.Net.WebUtility.HtmlEncode(request.Message).Replace("\n", "<br />")}</p>
                <hr />
-               <p>Attached proform: <strong>{proform.Number}</strong></p>
+               <p>Attached quotation: <strong>{proform.Number}</strong></p>
                """;
 
         await _emailService.SendAsync(
@@ -98,6 +98,6 @@ public sealed class SendProformByEmailCommandHandler
         return new SendProformByEmailResponse(
             proform.Id,
             proform.Status.ToString(),
-            "Proform email sent successfully.");
+            "Quotation email sent successfully.");
     }
 }

@@ -1,6 +1,6 @@
 # Supabase RLS Future Multitenant Policy
 
-Este documento prepara una politica futura para el caso en que `InstantProforms` use acceso directo a Postgres por medio de Supabase Auth en vez de pasar siempre por el backend .NET.
+Este documento prepara una politica futura para el caso en que `InstantQuotations` use acceso directo a Postgres por medio de Supabase Auth en vez de pasar siempre por el backend .NET.
 
 ## Estado actual
 
@@ -45,7 +45,7 @@ La politica propuesta sigue estas reglas:
 
 - cada usuario solo puede leer filas de su propia empresa
 - `Owner` y `Admin` pueden modificar configuracion de empresa y branding
-- `Owner`, `Admin` y `Employee` pueden trabajar con clientes y proformas de su empresa
+- `Owner`, `Admin` y `Employee` pueden trabajar con clientes y cotizaciones de su empresa
 - tablas internas sensibles no se exponen al cliente:
   - `Users`
   - `Roles`

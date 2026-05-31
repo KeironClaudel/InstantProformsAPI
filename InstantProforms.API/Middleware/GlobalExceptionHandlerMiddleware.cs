@@ -22,16 +22,16 @@ public sealed class GlobalExceptionHandlerMiddleware
         "Invalid or expired password reset token.",
         "Invalid or expired refresh token.",
         "Invalid or expired share token.",
-        "Invalid proform status.",
+        "Invalid quotation status.",
         "Invalid email or password.",
-        "Proform was not found.",
+        "Quotation was not found.",
         "The Owner role was not found.",
         "The client identification is already registered.",
-        "The proform already has the requested status.",
+        "The quotation already has the requested status.",
         "The selected client was not found.",
         "The uploaded logo is not a supported image.",
         "Unsupported client identification type.",
-        "Unsupported proform currency."
+        "Unsupported quotation currency."
     ];
 
     private readonly RequestDelegate _next;

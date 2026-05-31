@@ -1,18 +1,18 @@
-# InstantProforms API
+# InstantQuotations API
 
-Backend para la gestion de proformas con autenticacion segura, branding por empresa, generacion de PDF, envio por correo y enlaces publicos temporales para compartir documentos.
+Backend para la gestión de cotizaciones con autenticación segura, branding por empresa, generación de PDF, envío por correo y enlaces públicos temporales para compartir documentos.
 
 ## Overview
 
-InstantProforms API resuelve el flujo completo de una proforma dentro de una misma plataforma:
+InstantQuotations API resuelve el flujo completo de una cotización dentro de una misma plataforma:
 
 - onboarding de companias con configuracion inicial y usuario administrador
 - autenticacion basada en JWT usando cookies seguras
 - administracion de branding, logos y datos fiscales por empresa
-- creacion, consulta y actualizacion de proformas
+- creación, consulta y actualización de cotizaciones
 - listado paginado con estado, impuestos y datos del cliente
 - generacion de PDF para descarga o envio por correo
-- enlaces temporales para compartir proformas de forma publica
+- enlaces temporales para compartir cotizaciones de forma pública
 
 ## Features
 
@@ -58,7 +58,7 @@ InstantProforms/
 |- InstantProforms.Application/
 |- InstantProforms.Domain/
 |- InstantProforms.Infrastructure/
-`- InstantProforms.slnx
+`- InstantQuotations.slnx
 ```
 
 ## Quick Start
@@ -133,7 +133,7 @@ Configuracion relevante adicional:
 La API envia correos mediante `POST /emails` de Resend y mantiene intactos los flujos existentes de:
 
 - recuperacion de contrasena
-- envio de proformas con PDF adjunto
+- envío de cotizaciones con PDF adjunto
 
 La configuracion de Resend ahora es por empresa y se guarda cifrada dentro de `CompanySettings`. La API nunca devuelve el `ApiKey` al frontend; solo expone si ya existe una clave configurada.
 
@@ -216,7 +216,7 @@ Frontend local permitido por CORS:
 - `PUT /api/company-settings`
 - `PUT /api/company-settings/logo`
 
-### Proforms
+### Quotations (compatible `/api/proforms`)
 
 - `POST /api/proforms`
 - `GET /api/proforms`
@@ -260,8 +260,8 @@ Proyecto funcional para:
 
 - autenticacion y sesiones
 - configuracion de empresa
-- gestion de proformas
-- actualizacion manual de estado de proformas
+- gestión de cotizaciones
+- actualización manual del estado de cotizaciones
 - descarga de PDF
 - envio por correo
 - enlaces publicos temporales

@@ -18,7 +18,7 @@ public sealed class ResendSettings
     /// <summary>
     /// Gets or sets the legacy global sender display name.
     /// </summary>
-    public string SenderName { get; set; } = "InstantProforms";
+    public string SenderName { get; set; } = "InstantQuotations";
 
     /// <summary>
     /// Gets or sets the legacy global sender email address.

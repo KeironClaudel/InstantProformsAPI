@@ -51,7 +51,7 @@ public sealed class CreateProformShareLinkCommandHandler
 
         if (proform is null)
         {
-            throw new InvalidOperationException("Proform was not found.");
+            throw new InvalidOperationException("Quotation was not found.");
         }
 
         var rawToken = _jwtTokenService.GenerateRefreshToken();
