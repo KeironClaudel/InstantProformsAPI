@@ -7,9 +7,6 @@ namespace InstantProforms.Infrastructure.Services.Pdf;
 /// </summary>
 public static class ProformPdfRichTextParser
 {
-    private static readonly Regex NumberedBulletRegex = new(@"^\d+[\.\)]\s+", RegexOptions.Compiled);
-    private static readonly Regex SentenceSplitRegex = new(@"(?<=[\.;:])\s+(?=[A-ZÁÉÍÓÚÑ])", RegexOptions.Compiled);
-
     /// <summary>
     /// Parses the provided value into rich text blocks.
     /// </summary>
@@ -23,108 +20,27 @@ public static class ProformPdfRichTextParser
         }
 
         var normalized = NormalizeInput(value);
-
-        var blocks = new List<ProformPdfTextBlock>();
-        TextBlockBuilder? currentBlock = null;
-
-        foreach (var rawLine in normalized.Split('\n'))
-        {
-            var line = NormalizeWhitespace(rawLine);
-
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                FlushCurrentBlock();
-                continue;
-            }
-
-            if (TryExtractBulletText(line, out var bulletText))
-            {
-                FlushCurrentBlock();
-                currentBlock = new TextBlockBuilder(ProformPdfTextBlockKind.Bullet, bulletText);
-                continue;
-            }
-
-            currentBlock ??= new TextBlockBuilder(ProformPdfTextBlockKind.Paragraph, line);
-            currentBlock.Append(line);
-        }
-
-        FlushCurrentBlock();
-
-        return blocks;
-
-        void FlushCurrentBlock()
-        {
-            if (currentBlock is null)
-            {
-                return;
-            }
-
-            var text = currentBlock.Build();
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                blocks.Add(new ProformPdfTextBlock(currentBlock.Kind, text));
-            }
-
-            currentBlock = null;
-        }
+        return normalized
+            .Split('\n')
+            .Select(ParseLine)
+            .Where(static block => block is not null)
+            .Select(static block => block!)
+            .ToList();
     }
 
     /// <summary>
-    /// Parses general conditions trying to keep one condition per rendered row.
+    /// Parses general conditions using the same modern formatting rules as the rest of the document.
     /// </summary>
     /// <param name="value">The source text.</param>
     /// <returns>The parsed condition blocks.</returns>
     public static IReadOnlyList<ProformPdfTextBlock> ParseConditions(string? value)
     {
-        var normalized = NormalizeInput(value);
-
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            return Array.Empty<ProformPdfTextBlock>();
-        }
-
-        if (normalized.Contains("\n\n", StringComparison.Ordinal))
-        {
-            return normalized
-                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(NormalizeWhitespace)
-                .Where(static x => !string.IsNullOrWhiteSpace(x))
-                .Select(static x => new ProformPdfTextBlock(ProformPdfTextBlockKind.Bullet, x))
-                .ToList();
-        }
-
-        if (normalized.Contains('\n'))
-        {
-            return normalized
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(NormalizeWhitespace)
-                .Where(static x => !string.IsNullOrWhiteSpace(x))
-                .Select(static x => new ProformPdfTextBlock(ProformPdfTextBlockKind.Bullet, x))
-                .ToList();
-        }
-
-        var sentenceBlocks = SentenceSplitRegex
-            .Split(normalized)
-            .Select(NormalizeWhitespace)
-            .Where(static x => !string.IsNullOrWhiteSpace(x))
-            .ToList();
-
-        if (sentenceBlocks.Count > 1)
-        {
-            return sentenceBlocks
-                .Select(static x => new ProformPdfTextBlock(ProformPdfTextBlockKind.Bullet, x))
-                .ToList();
-        }
-
-        return new[]
-        {
-            new ProformPdfTextBlock(ProformPdfTextBlockKind.Bullet, NormalizeWhitespace(normalized))
-        };
+        return Parse(value);
     }
 
     /// <summary>
     /// Parses the service conditions section by preserving free-form user content
-    /// and appending company default conditions using the legacy one-row-per-condition format.
+    /// and appending company default conditions with the same modern formatting rules.
     /// </summary>
     /// <param name="userValue">The user-authored service conditions.</param>
     /// <param name="defaultConditionsValue">The company default conditions.</param>
@@ -156,48 +72,34 @@ public static class ProformPdfRichTextParser
     {
         bulletText = value;
 
-        if (value.Length > 2 && (value.StartsWith("- ") || value.StartsWith("* ") || value.StartsWith("• ") || value.StartsWith("· ")))
+        if (value.Length > 2 && value.StartsWith("- ", StringComparison.Ordinal))
         {
             bulletText = value[2..].Trim();
-            return true;
-        }
-
-        var numberedMatch = NumberedBulletRegex.Match(value);
-        if (numberedMatch.Success)
-        {
-            bulletText = value[numberedMatch.Length..].Trim();
             return true;
         }
 
         return false;
     }
 
+    private static ProformPdfTextBlock? ParseLine(string rawLine)
+    {
+        var line = NormalizeWhitespace(rawLine);
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return null;
+        }
+
+        if (TryExtractBulletText(line, out var bulletText))
+        {
+            return new ProformPdfTextBlock(ProformPdfTextBlockKind.Bullet, bulletText);
+        }
+
+        return new ProformPdfTextBlock(ProformPdfTextBlockKind.Paragraph, line);
+    }
+
     private static string NormalizeWhitespace(string value)
     {
         return Regex.Replace(value.Trim(), @"\s+", " ");
-    }
-
-    private sealed class TextBlockBuilder
-    {
-        private readonly List<string> _segments;
-
-        public TextBlockBuilder(ProformPdfTextBlockKind kind, string initialValue)
-        {
-            Kind = kind;
-            _segments = new List<string> { initialValue };
-        }
-
-        public ProformPdfTextBlockKind Kind { get; }
-
-        public void Append(string value)
-        {
-            if (_segments.Count == 0 || !string.Equals(_segments[^1], value, StringComparison.Ordinal))
-            {
-                _segments.Add(value);
-            }
-        }
-
-        public string Build() => string.Join(" ", _segments);
     }
 }
 

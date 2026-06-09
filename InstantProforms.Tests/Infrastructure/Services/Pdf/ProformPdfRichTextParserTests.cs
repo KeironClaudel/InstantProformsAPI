@@ -10,14 +10,12 @@ public sealed class ProformPdfRichTextParserTests
     {
         const string content = """
             Primera linea del parrafo
-            continua en la misma idea
+            Segunda linea convertida en otro parrafo
 
             - Primer punto
-            con detalle adicional
+            - Segundo punto
 
-            2. Segundo punto
-
-            Cierre del documento.
+            Cierre del documento
             """;
 
         var blocks = ProformPdfRichTextParser.Parse(content);
@@ -27,12 +25,17 @@ public sealed class ProformPdfRichTextParserTests
             block =>
             {
                 Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
-                Assert.Equal("Primera linea del parrafo continua en la misma idea", block.Text);
+                Assert.Equal("Primera linea del parrafo", block.Text);
+            },
+            block =>
+            {
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+                Assert.Equal("Segunda linea convertida en otro parrafo", block.Text);
             },
             block =>
             {
                 Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
-                Assert.Equal("Primer punto con detalle adicional", block.Text);
+                Assert.Equal("Primer punto", block.Text);
             },
             block =>
             {
@@ -42,7 +45,7 @@ public sealed class ProformPdfRichTextParserTests
             block =>
             {
                 Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
-                Assert.Equal("Cierre del documento.", block.Text);
+                Assert.Equal("Cierre del documento", block.Text);
             });
     }
 
@@ -62,13 +65,58 @@ public sealed class ProformPdfRichTextParserTests
             },
             block =>
             {
-                Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
-                Assert.Equal("Punto importante", block.Text);
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+                Assert.Equal("* Punto importante", block.Text);
             });
     }
 
     [Fact]
-    public void ParseConditions_WhenTextContainsBlankLines_ReturnsOneConditionPerBlock()
+    public void Parse_WhenTextContainsSingleLineBreaks_PreservesEachLineAsOwnBlock()
+    {
+        const string content = """
+            Parrafo uno
+            Parrafo dos
+            Parrafo tres
+            """;
+
+        var blocks = ProformPdfRichTextParser.Parse(content);
+
+        Assert.Collection(
+            blocks,
+            block =>
+            {
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+                Assert.Equal("Parrafo uno", block.Text);
+            },
+            block =>
+            {
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+                Assert.Equal("Parrafo dos", block.Text);
+            },
+            block =>
+            {
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+                Assert.Equal("Parrafo tres", block.Text);
+            });
+    }
+
+    [Fact]
+    public void Parse_WhenLineDoesNotStartWithDash_DoesNotConvertItIntoBullet()
+    {
+        const string content = """
+            1. Inicio de sesion administrativo
+            * Registro de usuarios
+            · Registro de vehiculos
+            """;
+
+        var blocks = ProformPdfRichTextParser.Parse(content);
+
+        Assert.Equal(3, blocks.Count);
+        Assert.All(blocks, block => Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind));
+    }
+
+    [Fact]
+    public void ParseConditions_WhenTextContainsBlankLines_PreservesParagraphBlocks()
     {
         const string content = """
             La garantia no cubre danos o modificaciones por terceros.
@@ -84,35 +132,36 @@ public sealed class ProformPdfRichTextParserTests
             blocks,
             block =>
             {
-                Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
                 Assert.Equal("La garantia no cubre danos o modificaciones por terceros.", block.Text);
             },
             block =>
             {
-                Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
                 Assert.Equal("Cualquier inconveniente debe reportarse a la empresa antes de intervenir.", block.Text);
             },
             block =>
             {
-                Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
                 Assert.Equal("Si se autoriza reparacion por terceros, la garantia queda anulada.", block.Text);
             });
     }
 
     [Fact]
-    public void ParseConditions_WhenTextArrivesAsSingleParagraph_SplitsSentencesIntoRows()
+    public void ParseConditions_WhenTextArrivesAsSingleParagraph_DoesNotSplitByLegacySentenceRules()
     {
         const string content =
             "La garantia no cubre danos por terceros. Cualquier inconveniente debe reportarse antes de intervenir. Si se autoriza reparacion por terceros, la garantia queda anulada.";
 
         var blocks = ProformPdfRichTextParser.ParseConditions(content);
 
-        Assert.Equal(3, blocks.Count);
-        Assert.All(blocks, block => Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind));
+        var block = Assert.Single(blocks);
+        Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+        Assert.Equal(content, block.Text);
     }
 
     [Fact]
-    public void ParseServiceConditions_PreservesUserFormattingAndLegacyCompanyRows()
+    public void ParseServiceConditions_PreservesUserFormattingAndModernCompanyFormatting()
     {
         const string userContent = """
             Introduccion libre del usuario.
@@ -120,8 +169,10 @@ public sealed class ProformPdfRichTextParserTests
             - Punto personalizado
             """;
 
-        const string companyDefaults =
-            "Primera condicion heredada. Segunda condicion heredada.";
+        const string companyDefaults = """
+            Condicion base uno
+            - Condicion base dos
+            """;
 
         var blocks = ProformPdfRichTextParser.ParseServiceConditions(userContent, companyDefaults);
 
@@ -139,13 +190,13 @@ public sealed class ProformPdfRichTextParserTests
             },
             block =>
             {
-                Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
-                Assert.Equal("Primera condicion heredada.", block.Text);
+                Assert.Equal(ProformPdfTextBlockKind.Paragraph, block.Kind);
+                Assert.Equal("Condicion base uno", block.Text);
             },
             block =>
             {
                 Assert.Equal(ProformPdfTextBlockKind.Bullet, block.Kind);
-                Assert.Equal("Segunda condicion heredada.", block.Text);
+                Assert.Equal("Condicion base dos", block.Text);
             });
     }
 }
